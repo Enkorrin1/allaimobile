@@ -1,0 +1,3 @@
+class AppDatabasePlaceholder {
+  const AppDatabasePlaceholder();
+}
