@@ -9,11 +9,11 @@ class ResultActionBar extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
-        _ActionChip(label: 'Save', icon: Icons.download_outlined),
-        _ActionChip(label: 'Share', icon: Icons.ios_share_outlined),
-        _ActionChip(label: 'Repeat', icon: Icons.repeat),
-        _ActionChip(label: 'Edit', icon: Icons.edit_outlined),
-        _ActionChip(label: 'Upscale', icon: Icons.hd_outlined),
+        _ActionChip(label: 'Сохранить', icon: Icons.download_outlined),
+        _ActionChip(label: 'Поделиться', icon: Icons.ios_share_outlined),
+        _ActionChip(label: 'Повторить', icon: Icons.repeat),
+        _ActionChip(label: 'Редактировать', icon: Icons.edit_outlined),
+        _ActionChip(label: 'Улучшить', icon: Icons.hd_outlined),
       ],
     );
   }

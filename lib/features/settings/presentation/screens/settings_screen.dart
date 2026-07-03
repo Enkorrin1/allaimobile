@@ -9,46 +9,49 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: const Text('Настройки')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: const [
-            StatusChip(label: 'Static settings', icon: Icons.settings_outlined),
+            StatusChip(
+              label: 'Статический экран',
+              icon: Icons.settings_outlined,
+            ),
             SizedBox(height: 16),
             PlaceholderCard(
               icon: Icons.language_outlined,
-              title: 'Language',
+              title: 'Язык',
               description:
-                  'RU-first copy with EN labels where product scope still uses them.',
+                  'RU-first copy; EN-термины оставлены только там, где это продуктовые названия.',
             ),
             SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.notifications_outlined,
-              title: 'Notifications',
+              title: 'Уведомления',
               description:
-                  'Job-completion notifications will be configured after backend events.',
+                  'Уведомления о готовности job появятся после backend events.',
             ),
             SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.policy_outlined,
-              title: 'Legal',
+              title: 'Юридические документы',
               description:
-                  'Terms, privacy, AI content policy and store compliance links.',
+                  'Terms, privacy, AI content policy и store compliance links.',
             ),
             SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.support_agent_outlined,
-              title: 'Support',
+              title: 'Поддержка',
               description:
-                  'Support entry, generation issue reporting and refund notes.',
+                  'Вход в поддержку, жалобы по генерациям и заметки по возвратам.',
             ),
             SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.delete_outline,
-              title: 'Delete account',
+              title: 'Удалить аккаунт',
               description:
-                  'Account deletion flow will be implemented with auth and backend contracts.',
+                  'Account deletion будет реализован вместе с auth и backend contracts.',
             ),
           ],
         ),

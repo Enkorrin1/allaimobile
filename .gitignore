@@ -35,6 +35,13 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Local SQLite/runtime database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
 # Symbolication related
 app.*.symbols
 

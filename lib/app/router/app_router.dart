@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/billing/presentation/screens/pricing_screen.dart';
 import '../../features/auth/presentation/screens/auth_welcome_screen.dart';
-import '../../features/auth/presentation/screens/login_placeholder_screen.dart';
+import '../../features/auth/presentation/providers/auth_providers.dart';
+import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/password_reset_screen.dart';
+import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/generator/presentation/screens/generator_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/library/presentation/screens/library_screen.dart';
@@ -15,15 +18,36 @@ import '../../features/studio/presentation/screens/studio_screen.dart';
 import '../../features/tools/presentation/screens/template_detail_screen.dart';
 import '../../features/tools/presentation/screens/tool_detail_screen.dart';
 import '../../features/tools/presentation/screens/tools_screen.dart';
-import '../../shared/widgets/app_shell.dart';
+import '../shell/app_shell.dart';
 import 'app_routes.dart';
+
+final initialLocationProvider = Provider<String>((ref) => AppRoutes.welcome);
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final rootNavigatorKey = GlobalKey<NavigatorState>();
+  final authRefresh = ValueNotifier<int>(0);
+  final initialLocation = ref.watch(initialLocationProvider);
+
+  ref
+    ..listen<AuthState>(authControllerProvider, (previous, next) {
+      authRefresh.value += 1;
+    })
+    ..onDispose(authRefresh.dispose);
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
-    initialLocation: '/',
+    initialLocation: initialLocation,
+    refreshListenable: authRefresh,
+    redirect: (context, state) {
+      final auth = ref.read(authControllerProvider);
+      final path = state.uri.path;
+      final authRoute = _isAuthRoute(path);
+
+      if (auth.isRestoring) return null;
+      if (!auth.isSignedIn && !authRoute) return AppRoutes.welcome;
+      if (auth.isSignedIn && authRoute) return AppRoutes.home;
+      return null;
+    },
     routes: [
       GoRoute(
         path: AppRoutes.welcome,
@@ -33,7 +57,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.login,
         name: 'login',
-        builder: (context, state) => const LoginPlaceholderScreen(),
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.register,
+        name: 'register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.passwordReset,
+        name: 'password-reset',
+        builder: (context, state) => const PasswordResetScreen(),
       ),
       GoRoute(
         path: AppRoutes.tools,
@@ -129,3 +163,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+bool _isAuthRoute(String path) {
+  return path == AppRoutes.welcome ||
+      path == AppRoutes.login ||
+      path == AppRoutes.register ||
+      path == AppRoutes.passwordReset;
+}

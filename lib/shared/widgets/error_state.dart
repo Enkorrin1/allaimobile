@@ -42,7 +42,7 @@ class ErrorState extends StatelessWidget {
             if (onRetry != null) ...[
               const SizedBox(height: 20),
               AppButton(
-                label: 'Retry',
+                label: 'Повторить',
                 icon: Icons.refresh,
                 onPressed: onRetry,
               ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class LoadingState extends StatelessWidget {
-  const LoadingState({this.label = 'Loading demo content', super.key});
+  const LoadingState({this.label = 'Загружаем данные', super.key});
 
   final String label;
 

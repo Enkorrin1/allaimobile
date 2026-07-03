@@ -24,27 +24,27 @@ class AppShell extends StatelessWidget {
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
-            label: 'Home',
+            label: 'Главная',
           ),
           NavigationDestination(
             icon: Icon(Icons.auto_awesome_outlined),
             selectedIcon: Icon(Icons.auto_awesome),
-            label: 'Create',
+            label: 'Создать',
           ),
           NavigationDestination(
             icon: Icon(Icons.photo_library_outlined),
             selectedIcon: Icon(Icons.photo_library),
-            label: 'Library',
+            label: 'Библиотека',
           ),
           NavigationDestination(
             icon: Icon(Icons.video_collection_outlined),
             selectedIcon: Icon(Icons.video_collection),
-            label: 'Studio',
+            label: 'Студия',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
-            label: 'Profile',
+            label: 'Профиль',
           ),
         ],
       ),

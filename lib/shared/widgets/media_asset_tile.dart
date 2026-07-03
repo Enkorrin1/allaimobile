@@ -77,7 +77,7 @@ class MediaAssetTile extends StatelessWidget {
                 const SizedBox(height: 10),
                 StatusChip(
                   label: status,
-                  icon: status == 'Failed'
+                  icon: status == 'Failed' || status == 'Ошибка'
                       ? Icons.error_outline
                       : Icons.check_circle_outline,
                 ),

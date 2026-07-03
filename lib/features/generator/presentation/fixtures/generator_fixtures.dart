@@ -19,35 +19,35 @@ class DemoGenerationMode {
 const demoGenerationModes = [
   DemoGenerationMode(
     id: 'photo',
-    label: 'Photo',
+    label: 'Фото',
     description: 'Изображения для товаров, объявлений и соцсетей.',
     icon: Icons.image_outlined,
     estimatedCost: 80,
   ),
   DemoGenerationMode(
     id: 'video',
-    label: 'Video',
+    label: 'Видео',
     description: 'Короткие ролики и vertical creatives.',
     icon: Icons.video_camera_back_outlined,
     estimatedCost: 240,
   ),
   DemoGenerationMode(
     id: 'upscale',
-    label: 'Upscale',
+    label: 'Апскейл',
     description: 'Улучшение детализации и размера результата.',
     icon: Icons.hd_outlined,
     estimatedCost: 60,
   ),
   DemoGenerationMode(
     id: 'avatars',
-    label: 'Avatars',
+    label: 'Аватары',
     description: 'Персонажи и try-on сценарии для бренда.',
     icon: Icons.person_search_outlined,
     estimatedCost: 140,
   ),
   DemoGenerationMode(
     id: 'motion',
-    label: 'Motion',
+    label: 'Движение',
     description: 'Оживление изображения и простая анимация.',
     icon: Icons.motion_photos_on_outlined,
     estimatedCost: 180,
@@ -55,8 +55,8 @@ const demoGenerationModes = [
 ];
 
 const demoAdvancedSettings = [
-  'Aspect 9:16',
-  'Quality high',
-  'Safe commercial style',
-  'Notify when ready',
+  'Формат 9:16',
+  'Высокое качество',
+  'Коммерческий стиль',
+  'Уведомить о готовности',
 ];

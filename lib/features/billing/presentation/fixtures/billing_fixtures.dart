@@ -25,6 +25,7 @@ class DemoTransaction {
 }
 
 const demoBalanceLabel = 'Баланс: 1 250 койнов';
+const demoCompactBalanceLabel = '1 250';
 const demoCostLabel = 'Стоимость: от 80 койнов';
 const demoReserveCopy =
     'Койны зарезервируются при запуске. При сбое генерации мы вернем их автоматически.';
@@ -67,12 +68,12 @@ const demoTransactions = [
     amountLabel: '-80',
   ),
   DemoTransaction(
-    title: 'Failed motion draft refund',
+    title: 'Возврат за motion draft',
     dateLabel: 'Вчера, 10:19',
     amountLabel: '+180',
   ),
   DemoTransaction(
-    title: 'Demo balance grant',
+    title: 'Демо-баланс',
     dateLabel: 'Phase 2',
     amountLabel: '+1 250',
   ),

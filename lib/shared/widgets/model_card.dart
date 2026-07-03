@@ -12,6 +12,8 @@ class ModelCard extends StatelessWidget {
     required this.icon,
     required this.accentColor,
     required this.available,
+    this.availabilityLabel,
+    this.availabilityDescription,
     this.onTap,
     super.key,
   });
@@ -23,6 +25,8 @@ class ModelCard extends StatelessWidget {
   final IconData icon;
   final Color accentColor;
   final bool available;
+  final String? availabilityLabel;
+  final String? availabilityDescription;
   final VoidCallback? onTap;
 
   @override
@@ -58,7 +62,7 @@ class ModelCard extends StatelessWidget {
                 ),
               ),
               StatusChip(
-                label: available ? 'Ready' : 'Soon',
+                label: availabilityLabel ?? (available ? 'Готово' : 'Скоро'),
                 icon: available ? Icons.check_circle_outline : Icons.schedule,
               ),
             ],
@@ -70,6 +74,15 @@ class ModelCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodyMedium,
           ),
+          if (!available && availabilityDescription != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              availabilityDescription!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           Text(costLabel, style: theme.textTheme.labelLarge),
         ],

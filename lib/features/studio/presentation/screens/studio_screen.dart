@@ -1,97 +1,122 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
-import '../../../../features/tools/presentation/fixtures/tool_fixtures.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/error_state.dart';
+import '../../../../shared/widgets/loading_state.dart';
 import '../../../../shared/widgets/placeholder_card.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/template_card.dart';
+import '../../../tools/presentation/providers/catalog_providers.dart';
+import '../../../tools/presentation/view_models/catalog_ui_mappers.dart';
 
-class StudioScreen extends StatelessWidget {
+class StudioScreen extends ConsumerWidget {
   const StudioScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final socialTemplates = demoTemplates
-        .where(
-          (template) =>
-              template.id == 'product-ugc-hook' ||
-              template.id == 'social-hook-cut' ||
-              template.id == 'ugc',
-        )
-        .toList();
+    final catalogAsync = ref.watch(catalogProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Studio')),
+      appBar: AppBar(title: const Text('Студия')),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Text('Social studio', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: 8),
-            Text(
-              'Draft social assets, collect captions and prepare exports before direct publishing exists.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 18),
-            AppCard(
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.dashboard_customize_outlined,
-                    color: theme.colorScheme.primary,
+        child: catalogAsync.when(
+          loading: () => const LoadingState(label: 'Загрузка студии'),
+          error: (error, stackTrace) => const ErrorState(
+            title: 'Студия недоступна',
+            description: 'Не удалось загрузить шаблоны студии.',
+          ),
+          data: (catalog) {
+            final socialTemplates = catalog.templates
+                .where(
+                  (template) =>
+                      template.id == 'product-ugc-hook' ||
+                      template.id == 'social-hook-cut' ||
+                      template.id == 'ugc',
+                )
+                .toList();
+
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Text('Social Studio', style: theme.textTheme.headlineMedium),
+                const SizedBox(height: 8),
+                Text(
+                  'Готовьте social assets, captions и export-пакеты до появления прямой публикации.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      '3 draft slots ready for TikTok, Reels and Shorts mock flows.',
-                      style: theme.textTheme.titleMedium,
+                ),
+                const SizedBox(height: 18),
+                AppCard(
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.dashboard_customize_outlined,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          '3 стартовых сценария готовы для TikTok, Reels и Shorts.',
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const SectionHeader(title: 'Social-ready шаблоны'),
+                const SizedBox(height: 8),
+                for (final template in socialTemplates) ...[
+                  TemplateCard(
+                    title: template.title,
+                    badge: templateAvailabilityLabel(template),
+                    description: template.description,
+                    costLabel: costLabel(
+                      catalog.models
+                          .firstWhere(
+                            (model) => model.id == template.defaultModelId,
+                          )
+                          .cost,
                     ),
+                    icon: templateIcon(template.category),
+                    accentColor: templateColor(template.category),
+                    onTap: template.isAvailable
+                        ? () => context.push(
+                            AppRoutes.templateDetail(template.id),
+                          )
+                        : null,
                   ),
+                  const SizedBox(height: 12),
                 ],
-              ),
-            ),
-            const SizedBox(height: 18),
-            const SectionHeader(title: 'Social-ready templates'),
-            const SizedBox(height: 8),
-            for (final template in socialTemplates) ...[
-              TemplateCard(
-                title: template.title,
-                badge: template.badge,
-                description: template.description,
-                costLabel: 'от ${template.estimatedCost} койнов',
-                icon: template.icon,
-                accentColor: template.accentColor,
-                onTap: () => context.go(AppRoutes.templateDetail(template.id)),
-              ),
-              const SizedBox(height: 12),
-            ],
-            const SizedBox(height: 10),
-            const PlaceholderCard(
-              icon: Icons.dashboard_customize_outlined,
-              title: 'Social drafts',
-              description:
-                  'TikTok, YouTube Shorts, Pinterest and Reels workflows land after MVP generation.',
-            ),
-            const SizedBox(height: 12),
-            const PlaceholderCard(
-              icon: Icons.inventory_2_outlined,
-              title: 'Export package',
-              description:
-                  'Save captions, prompts and generated assets together for publishing.',
-            ),
-            const SizedBox(height: 18),
-            AppButton(
-              label: 'Create social asset',
-              icon: Icons.auto_awesome,
-              onPressed: () => context.go(AppRoutes.create),
-            ),
-          ],
+                const SizedBox(height: 10),
+                const PlaceholderCard(
+                  icon: Icons.dashboard_customize_outlined,
+                  title: 'Черновики',
+                  description:
+                      'TikTok, YouTube Shorts, Pinterest и Reels workflows появятся после MVP generation.',
+                ),
+                const SizedBox(height: 12),
+                const PlaceholderCard(
+                  icon: Icons.inventory_2_outlined,
+                  title: 'Export package',
+                  description:
+                      'Сохраняйте captions, prompts и generated assets вместе для публикации.',
+                ),
+                const SizedBox(height: 18),
+                AppButton(
+                  label: 'Создать social asset',
+                  icon: Icons.auto_awesome,
+                  onPressed: () => context.go(AppRoutes.create),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

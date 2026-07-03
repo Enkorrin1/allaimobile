@@ -8,6 +8,8 @@ class AppRoutes {
   static const profile = '/profile';
   static const welcome = '/welcome';
   static const login = '/login';
+  static const register = '/register';
+  static const passwordReset = '/password-reset';
   static const tools = '/tools';
   static const pricing = '/pricing';
   static const settings = '/settings';

@@ -1,29 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
-import '../../../../features/billing/presentation/fixtures/billing_fixtures.dart';
+import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/coin_balance_chip.dart';
+import '../../../../shared/widgets/loading_state.dart';
 import '../../../../shared/widgets/placeholder_card.dart';
 import '../../../../shared/widgets/status_chip.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../billing/presentation/providers/billing_providers.dart';
+import '../../../tools/presentation/view_models/catalog_ui_mappers.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final balance = ref.watch(balanceProvider).value;
+    final auth = ref.watch(authControllerProvider);
+
+    if (auth.isRestoring) {
+      return const Scaffold(
+        body: SafeArea(child: LoadingState(label: 'Восстанавливаем сессию')),
+      );
+    }
+
+    final session = auth.session;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          IconButton(
-            tooltip: 'Open welcome',
-            onPressed: () => context.go(AppRoutes.welcome),
-            icon: const Icon(Icons.login),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Профиль')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -38,14 +46,16 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    'Demo creator',
-                    style: Theme.of(context).textTheme.headlineMedium,
+                    session?.user.displayName ?? 'Аккаунт AllAI',
+                    style: theme.textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Static profile shell. Auth, token restore and account data arrive in later phases.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    session == null
+                        ? 'Войдите, чтобы открыть профиль.'
+                        : session.user.email,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -54,12 +64,14 @@ class ProfileScreen extends StatelessWidget {
                     runSpacing: 8,
                     children: [
                       const StatusChip(
-                        label: 'Development shell',
-                        icon: Icons.construction,
+                        label: 'Сессия активна',
+                        icon: Icons.verified_user_outlined,
                       ),
                       CoinBalanceChip(
-                        label: demoBalanceLabel,
-                        onPressed: () => context.go(AppRoutes.pricing),
+                        label: balance == null
+                            ? 'Баланс загружается'
+                            : 'Баланс: ${formatCoins(balance.coinBalance)} койнов',
+                        onPressed: () => context.push(AppRoutes.pricing),
                       ),
                     ],
                   ),
@@ -69,42 +81,76 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.account_circle_outlined,
-              title: 'Account',
-              description:
-                  'Legal consent, 18+ confirmation, logout and delete-account flows will connect in Phase 4.',
+              title: 'Аккаунт',
+              description: 'Email, имя, подтверждение 18+ и локальная сессия.',
               trailing: IconButton(
-                tooltip: 'Open auth',
-                onPressed: () => context.go(AppRoutes.welcome),
+                tooltip: 'Аккаунт',
+                onPressed: () {},
                 icon: const Icon(Icons.chevron_right),
               ),
             ),
             const SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.payments_outlined,
-              title: 'Coins and billing',
+              title: 'Койны и биллинг',
               description:
-                  'Demo balance and packages are visible now; real billing is intentionally disabled.',
+                  'Демо-баланс и пакеты видны сейчас; реальные покупки намеренно выключены.',
               trailing: IconButton(
-                tooltip: 'Open pricing',
-                onPressed: () => context.go(AppRoutes.pricing),
+                tooltip: 'Открыть баланс',
+                onPressed: () => context.push(AppRoutes.pricing),
                 icon: const Icon(Icons.chevron_right),
               ),
             ),
             const SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.settings_outlined,
-              title: 'Settings',
-              description:
-                  'Language, notifications, privacy, terms and support links.',
+              title: 'Настройки',
+              description: 'Язык, уведомления, юридические ссылки и поддержка.',
               trailing: IconButton(
-                tooltip: 'Open settings',
-                onPressed: () => context.go(AppRoutes.settings),
+                tooltip: 'Открыть настройки',
+                onPressed: () => context.push(AppRoutes.settings),
                 icon: const Icon(Icons.chevron_right),
               ),
+            ),
+            const SizedBox(height: 12),
+            const PlaceholderCard(
+              icon: Icons.delete_outline,
+              title: 'Удалить аккаунт',
+              description: 'Удаление аккаунта появится позже.',
+            ),
+            const SizedBox(height: 18),
+            AppButton(
+              label: 'Выйти',
+              icon: Icons.logout,
+              secondary: true,
+              onPressed: () => _confirmLogout(context, ref),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Выйти из аккаунта?'),
+        content: const Text('Локальная история останется на устройстве.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Выйти'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    await ref.read(authControllerProvider.notifier).logout();
+    if (context.mounted) context.go(AppRoutes.welcome);
   }
 }
