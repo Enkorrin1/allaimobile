@@ -25,7 +25,7 @@ type User = {
 type AiModel = {
   id: string;
   name: string;
-  providerKey: string;
+  providerLabel?: string;
   category: "image" | "video" | "upscale" | "avatar" | "motion";
   description: string;
   supportedInputs: Array<"prompt" | "image" | "video" | "reference">;
@@ -45,6 +45,12 @@ type AiModel = {
   };
 };
 ```
+
+Important mobile boundary:
+
+- `providerLabel` is public display metadata only.
+- Mobile must not receive or store provider routing keys, provider credentials, or provider SDK configuration.
+- Backend owns provider routing behind stable public `id` values.
 
 ```ts
 type Template = {

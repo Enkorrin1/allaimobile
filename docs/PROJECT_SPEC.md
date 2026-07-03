@@ -486,7 +486,7 @@ type User = {
 type AiModel = {
   id: string;
   name: string;
-  providerKey: string;
+  providerLabel?: string;
   category: "image" | "video" | "upscale" | "avatar" | "motion";
   description: string;
   supportedInputs: Array<"prompt" | "image" | "video" | "reference">;
@@ -506,6 +506,8 @@ type AiModel = {
   };
 };
 ```
+
+Mobile receives public model metadata only. Provider routing keys, credentials, SDK configuration, and fallback logic remain backend-only.
 
 ### Template
 
