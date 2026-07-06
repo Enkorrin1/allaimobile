@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/auth/auth_session.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
@@ -55,114 +56,132 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         child: ListView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: EdgeInsets.fromLTRB(
-            24,
-            24,
-            24,
-            24 + MediaQuery.viewInsetsOf(context).bottom,
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.lg + MediaQuery.viewInsetsOf(context).bottom,
           ),
           children: [
-            Text('Создать аккаунт', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: 8),
+            Text('Создать аккаунт', style: theme.textTheme.headlineSmall),
+            const SizedBox(height: AppSpacing.xs),
             Text(
-              'Создайте демо-аккаунт. Локальная сессия сохранится на этом устройстве.',
+              'Демо-аккаунт сохранит сессию на этом устройстве и откроет доступ к генератору.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 20),
-            AppTextField(
-              key: const Key('register-email-field'),
-              controller: _emailController,
-              label: 'Email',
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              onChanged: (_) => setState(() {}),
-              autofillHints: const [AutofillHints.email],
-            ),
-            const SizedBox(height: 16),
-            AppTextField(
-              key: const Key('register-name-field'),
-              controller: _nameController,
-              label: 'Имя',
-              hintText: 'Как к вам обращаться',
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.name],
-            ),
-            const SizedBox(height: 16),
-            AppTextField(
-              key: const Key('register-password-field'),
-              controller: _passwordController,
-              label: 'Пароль',
-              hintText: 'Минимум 8 символов',
-              obscureText: _obscurePassword,
-              textInputAction: TextInputAction.next,
-              onChanged: (_) => setState(() {}),
-              autofillHints: const [AutofillHints.newPassword],
-              suffixIcon: IconButton(
-                tooltip: _obscurePassword ? 'Показать пароль' : 'Скрыть пароль',
-                onPressed: () {
-                  setState(() => _obscurePassword = !_obscurePassword);
-                },
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
+            const SizedBox(height: AppSpacing.lg),
+            AppCard(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                children: [
+                  AppTextField(
+                    key: const Key('register-email-field'),
+                    controller: _emailController,
+                    label: 'Email',
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    prefixIcon: const Icon(Icons.alternate_email),
+                    onChanged: (_) => setState(() {}),
+                    autofillHints: const [AutofillHints.email],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppTextField(
+                    key: const Key('register-name-field'),
+                    controller: _nameController,
+                    label: 'Имя',
+                    hintText: 'Как к вам обращаться',
+                    textInputAction: TextInputAction.next,
+                    prefixIcon: const Icon(Icons.person_outline),
+                    autofillHints: const [AutofillHints.name],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppTextField(
+                    key: const Key('register-password-field'),
+                    controller: _passwordController,
+                    label: 'Пароль',
+                    hintText: 'Минимум 8 символов',
+                    obscureText: _obscurePassword,
+                    textInputAction: TextInputAction.next,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    onChanged: (_) => setState(() {}),
+                    autofillHints: const [AutofillHints.newPassword],
+                    suffixIcon: IconButton(
+                      tooltip: _obscurePassword
+                          ? 'Показать пароль'
+                          : 'Скрыть пароль',
+                      onPressed: () {
+                        setState(() => _obscurePassword = !_obscurePassword);
+                      },
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppTextField(
+                    key: const Key('register-repeat-password-field'),
+                    controller: _repeatPasswordController,
+                    label: 'Повторите пароль',
+                    obscureText: _obscurePassword,
+                    textInputAction: TextInputAction.done,
+                    prefixIcon: const Icon(Icons.lock_reset_outlined),
+                    onChanged: (_) => setState(() {}),
+                    autofillHints: const [AutofillHints.newPassword],
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            AppTextField(
-              key: const Key('register-repeat-password-field'),
-              controller: _repeatPasswordController,
-              label: 'Повторите пароль',
-              obscureText: _obscurePassword,
-              textInputAction: TextInputAction.done,
-              onChanged: (_) => setState(() {}),
-              autofillHints: const [AutofillHints.newPassword],
-            ),
-            const SizedBox(height: 18),
-            CheckboxListTile(
-              key: const Key('register-terms-checkbox'),
-              value: _acceptedTerms,
-              onChanged: (value) {
-                setState(() => _acceptedTerms = value ?? false);
-              },
-              title: _legalLabel(
-                prefix: 'Я принимаю ',
-                linkLabel: 'условия использования',
-                title: 'Условия использования',
+            const SizedBox(height: AppSpacing.md),
+            AppCard(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+              child: Column(
+                children: [
+                  CheckboxListTile(
+                    key: const Key('register-terms-checkbox'),
+                    value: _acceptedTerms,
+                    onChanged: (value) {
+                      setState(() => _acceptedTerms = value ?? false);
+                    },
+                    title: _legalLabel(
+                      prefix: 'Принимаю ',
+                      linkLabel: 'условия использования',
+                      title: 'Условия использования',
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  CheckboxListTile(
+                    key: const Key('register-privacy-checkbox'),
+                    value: _acceptedPrivacy,
+                    onChanged: (value) {
+                      setState(() => _acceptedPrivacy = value ?? false);
+                    },
+                    title: _legalLabel(
+                      prefix: 'Принимаю ',
+                      linkLabel: 'политику конфиденциальности',
+                      title: 'Политика конфиденциальности',
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  CheckboxListTile(
+                    key: const Key('register-age-checkbox'),
+                    value: _confirmedAge18,
+                    onChanged: (value) {
+                      setState(() => _confirmedAge18 = value ?? false);
+                    },
+                    title: const Text('Подтверждаю, что мне есть 18 лет'),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                ],
               ),
-              controlAffinity: ListTileControlAffinity.leading,
-              contentPadding: EdgeInsets.zero,
-            ),
-            CheckboxListTile(
-              key: const Key('register-privacy-checkbox'),
-              value: _acceptedPrivacy,
-              onChanged: (value) {
-                setState(() => _acceptedPrivacy = value ?? false);
-              },
-              title: _legalLabel(
-                prefix: 'Я принимаю ',
-                linkLabel: 'политику конфиденциальности',
-                title: 'Политика конфиденциальности',
-              ),
-              controlAffinity: ListTileControlAffinity.leading,
-              contentPadding: EdgeInsets.zero,
-            ),
-            CheckboxListTile(
-              key: const Key('register-age-checkbox'),
-              value: _confirmedAge18,
-              onChanged: (value) {
-                setState(() => _confirmedAge18 = value ?? false);
-              },
-              title: const Text('Подтверждаю, что мне есть 18 лет'),
-              controlAffinity: ListTileControlAffinity.leading,
-              contentPadding: EdgeInsets.zero,
             ),
             if (auth.errorMessage != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               AppCard(
                 color: theme.colorScheme.errorContainer,
+                borderColor: Colors.transparent,
                 child: Text(
                   auth.errorMessage!,
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -171,13 +190,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
               ),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
             AppButton(
               label: auth.isSubmitting ? 'Создаем...' : 'Создать аккаунт',
               icon: Icons.person_add_alt_1,
+              fullWidth: true,
               onPressed: auth.isSubmitting || !_canSubmit ? null : _submit,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.sm),
             TextButton(
               onPressed: () => context.go(AppRoutes.login),
               child: const Text('Уже есть аккаунт? Войти'),
@@ -200,7 +220,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         TextButton(
           style: TextButton.styleFrom(
             padding: EdgeInsets.zero,
-            minimumSize: const Size(0, 36),
+            minimumSize: const Size(0, 40),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           onPressed: () => _showLegalPlaceholder(title),
@@ -218,20 +238,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         final theme = Theme.of(context);
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.xs,
+              AppSpacing.lg,
+              AppSpacing.lg,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: theme.textTheme.titleLarge),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   'Юридический текст будет подключен после утверждения ссылок. Сейчас это демо-заглушка.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(

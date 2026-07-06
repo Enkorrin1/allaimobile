@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../app/theme/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_text_field.dart';
@@ -32,42 +33,47 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
     final auth = ref.watch(authControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Восстановление')),
+      appBar: AppBar(title: const Text('Восстановить доступ')),
       body: SafeArea(
         child: ListView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: EdgeInsets.fromLTRB(
-            24,
-            24,
-            24,
-            24 + MediaQuery.viewInsetsOf(context).bottom,
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.lg + MediaQuery.viewInsetsOf(context).bottom,
           ),
           children: [
-            Text('Сброс пароля', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: 8),
+            Text('Восстановить доступ', style: theme.textTheme.headlineSmall),
+            const SizedBox(height: AppSpacing.xs),
             Text(
-              'Укажите email. Мы покажем безопасное демо-подтверждение.',
+              'Укажите email. В демо-режиме мы покажем безопасное подтверждение без отправки письма.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 20),
-            AppTextField(
-              key: const Key('reset-email-field'),
-              controller: _emailController,
-              label: 'Email',
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.done,
-              errorText: _emailError,
-              onChanged: (_) => setState(() => _emailError = null),
-              autofillHints: const [AutofillHints.email],
+            const SizedBox(height: AppSpacing.lg),
+            AppCard(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: AppTextField(
+                key: const Key('reset-email-field'),
+                controller: _emailController,
+                label: 'Email',
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.done,
+                errorText: _emailError,
+                prefixIcon: const Icon(Icons.alternate_email),
+                onChanged: (_) => setState(() => _emailError = null),
+                autofillHints: const [AutofillHints.email],
+              ),
             ),
             if (auth.passwordResetSent) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AppCard(
                 color: theme.colorScheme.primaryContainer,
+                borderColor: Colors.transparent,
                 child: Text(
-                  'Если аккаунт существует, мы отправим инструкцию',
+                  'Если аккаунт существует, запрос принят в демо-режиме',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onPrimaryContainer,
                   ),
@@ -75,9 +81,10 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
               ),
             ],
             if (auth.errorMessage != null) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AppCard(
                 color: theme.colorScheme.errorContainer,
+                borderColor: Colors.transparent,
                 child: Text(
                   auth.errorMessage!,
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -86,15 +93,14 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                 ),
               ),
             ],
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
             AppButton(
-              label: auth.isSubmitting
-                  ? 'Отправляем...'
-                  : 'Отправить инструкцию',
+              label: auth.isSubmitting ? 'Проверяем...' : 'Продолжить',
               icon: Icons.mark_email_read_outlined,
+              fullWidth: true,
               onPressed: auth.isSubmitting ? null : _submit,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.sm),
             TextButton(
               onPressed: () => context.go(AppRoutes.login),
               child: const Text('Вернуться ко входу'),

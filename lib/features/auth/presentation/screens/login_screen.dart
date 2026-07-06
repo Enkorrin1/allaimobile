@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../app/theme/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_text_field.dart';
@@ -40,59 +41,71 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: ListView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: EdgeInsets.fromLTRB(
-            24,
-            24,
-            24,
-            24 + MediaQuery.viewInsetsOf(context).bottom,
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.lg + MediaQuery.viewInsetsOf(context).bottom,
           ),
           children: [
-            Text('С возвращением', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: 8),
+            Text('С возвращением', style: theme.textTheme.headlineSmall),
+            const SizedBox(height: AppSpacing.xs),
             Text(
-              'Войдите в демо-аккаунт, чтобы открыть AllAI.',
+              'Войдите в демо-аккаунт, чтобы открыть генератор, библиотеку и баланс койнов.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 20),
-            AppTextField(
-              key: const Key('login-email-field'),
-              controller: _emailController,
-              label: 'Email',
-              hintText: 'creator@allai.market',
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              errorText: _emailError,
-              onChanged: (_) => setState(() => _emailError = null),
-              autofillHints: const [AutofillHints.username],
-            ),
-            const SizedBox(height: 16),
-            AppTextField(
-              key: const Key('login-password-field'),
-              controller: _passwordController,
-              label: 'Пароль',
-              hintText: 'Пароль',
-              obscureText: _obscurePassword,
-              textInputAction: TextInputAction.done,
-              errorText: _passwordError,
-              onChanged: (_) => setState(() => _passwordError = null),
-              autofillHints: const [AutofillHints.password],
-              suffixIcon: IconButton(
-                tooltip: _obscurePassword ? 'Показать пароль' : 'Скрыть пароль',
-                onPressed: () {
-                  setState(() => _obscurePassword = !_obscurePassword);
-                },
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
+            const SizedBox(height: AppSpacing.lg),
+            AppCard(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                children: [
+                  AppTextField(
+                    key: const Key('login-email-field'),
+                    controller: _emailController,
+                    label: 'Email',
+                    hintText: 'creator@allai.market',
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    errorText: _emailError,
+                    prefixIcon: const Icon(Icons.alternate_email),
+                    onChanged: (_) => setState(() => _emailError = null),
+                    autofillHints: const [AutofillHints.username],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppTextField(
+                    key: const Key('login-password-field'),
+                    controller: _passwordController,
+                    label: 'Пароль',
+                    hintText: 'Пароль',
+                    obscureText: _obscurePassword,
+                    textInputAction: TextInputAction.done,
+                    errorText: _passwordError,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    onChanged: (_) => setState(() => _passwordError = null),
+                    autofillHints: const [AutofillHints.password],
+                    suffixIcon: IconButton(
+                      tooltip: _obscurePassword
+                          ? 'Показать пароль'
+                          : 'Скрыть пароль',
+                      onPressed: () {
+                        setState(() => _obscurePassword = !_obscurePassword);
+                      },
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             if (auth.errorMessage != null) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AppCard(
                 color: theme.colorScheme.errorContainer,
+                borderColor: Colors.transparent,
                 child: Text(
                   auth.errorMessage!,
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -101,20 +114,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
             ],
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
             AppButton(
               label: auth.isSubmitting ? 'Входим...' : 'Войти',
               icon: Icons.login,
+              fullWidth: true,
               onPressed: auth.isSubmitting ? null : _submit,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.sm),
             AppButton(
               label: 'Забыли пароль?',
               icon: Icons.help_outline,
               secondary: true,
+              fullWidth: true,
               onPressed: () => context.go(AppRoutes.passwordReset),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.sm),
             TextButton(
               onPressed: () => context.go(AppRoutes.register),
               child: const Text('Создать аккаунт'),

@@ -117,7 +117,7 @@ void main() {
   testWidgets('fresh signed-out app opens Welcome, not shell', (tester) async {
     await pumpAllAi(tester, signedIn: false);
 
-    expect(find.text('Создавайте AI-фото и видео'), findsOneWidget);
+    expect(find.text('Создавайте фото и видео с ИИ'), findsOneWidget);
     expect(find.text('Войти'), findsOneWidget);
     expect(find.text('Главная'), findsNothing);
   });
@@ -131,7 +131,7 @@ void main() {
       initialLocation: AppRoutes.profile,
     );
 
-    expect(find.text('Создавайте AI-фото и видео'), findsOneWidget);
+    expect(find.text('Создавайте фото и видео с ИИ'), findsOneWidget);
     expect(find.text('Профиль'), findsNothing);
   });
 
@@ -140,7 +140,7 @@ void main() {
   ) async {
     final harness = await pumpAllAi(tester, signedIn: false);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Войти'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Войти'));
     await pumpRoute(tester);
     await tester.enterText(
       find.byType(TextField).at(1),
@@ -158,7 +158,7 @@ void main() {
   ) async {
     final harness = await pumpAllAi(tester, signedIn: false);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Войти'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Войти'));
     await pumpRoute(tester);
     await tester.enterText(find.byType(TextField).at(1), 'wrong-password');
     await tester.tap(find.widgetWithText(FilledButton, 'Войти'));
@@ -173,7 +173,7 @@ void main() {
   ) async {
     final harness = await pumpAllAi(tester, signedIn: false);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Войти'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Войти'));
     await pumpRoute(tester);
     await tester.enterText(find.byType(TextField).at(0), '');
     await tester.enterText(find.byType(TextField).at(1), '');
@@ -198,25 +198,25 @@ void main() {
   ) async {
     await pumpAllAi(tester, signedIn: false);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Войти'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Войти'));
     await pumpRoute(tester);
     await tester.tap(find.widgetWithText(OutlinedButton, 'Забыли пароль?'));
     await pumpRoute(tester);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Отправить инструкцию'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Продолжить'));
     await pumpRoute(tester);
     expect(find.text('Введите email'), findsOneWidget);
     expect(
-      find.text('Если аккаунт существует, мы отправим инструкцию'),
+      find.text('Если аккаунт существует, запрос принят в демо-режиме'),
       findsNothing,
     );
 
     await tester.enterText(find.byType(TextField).first, 'bad-email');
-    await tester.tap(find.widgetWithText(FilledButton, 'Отправить инструкцию'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Продолжить'));
     await pumpRoute(tester);
     expect(find.text('Введите корректный email'), findsOneWidget);
     expect(
-      find.text('Если аккаунт существует, мы отправим инструкцию'),
+      find.text('Если аккаунт существует, запрос принят в демо-режиме'),
       findsNothing,
     );
   });
@@ -224,7 +224,7 @@ void main() {
   testWidgets('registration legal links open placeholder', (tester) async {
     await pumpAllAi(tester, signedIn: false);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Создать аккаунт'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Создать аккаунт'));
     await pumpRoute(tester);
     await scrollUntilVisible(tester, find.text('условия использования'));
     await tester.tap(find.text('условия использования'));
@@ -246,7 +246,7 @@ void main() {
   ) async {
     await pumpAllAi(tester, signedIn: false);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Создать аккаунт'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Создать аккаунт'));
     await pumpRoute(tester);
     await tester.enterText(find.byType(TextField).at(0), 'new@example.com');
     await tester.enterText(find.byType(TextField).at(1), 'Новый креатор');
@@ -598,11 +598,11 @@ void main() {
     await pumpRoute(tester);
 
     expect(await harness.storage.read(AuthSessionStore.sessionKey), isNull);
-    expect(find.text('Создавайте AI-фото и видео'), findsOneWidget);
+    expect(find.text('Создавайте фото и видео с ИИ'), findsOneWidget);
 
     await tester.binding.handlePopRoute();
     await pumpRoute(tester);
-    expect(find.text('Создавайте AI-фото и видео'), findsOneWidget);
+    expect(find.text('Создавайте фото и видео с ИИ'), findsOneWidget);
     expect(find.text('Главная'), findsNothing);
   });
 }
