@@ -29,6 +29,59 @@ Use these files as the stable reference before implementation work:
 - `PHASE_5_ROLE_ASSIGNMENTS.md` - catalog/templates/pricing integration role distribution.
 - `PHASE_5_EXECUTION_BRIEF.md` - Phase 5 slices, boundaries, checks, and open backend decisions.
 - `PHASE_5_CONTRACT_REVIEW.md` - collected Phase 5 product/data/architecture/UI/QA/repo decisions and Slice B dispatch contract.
+- `PHASE_5_SLICE_B_RESULT.md` - implemented backend-ready catalog/pricing boundary result and checks.
+- `PHASE_5_SLICE_B_REVIEW_DISPATCH.md` - role review assignment after Slice B implementation.
+- `PHASE_5_SLICE_B_REVIEW_NOTES.md` - collected Slice B role gates and Slice C readiness notes.
+- `PHASE_5_SLICE_C_EXECUTION_BRIEF.md` - Slice C UI state integration and Android QA implementation brief.
+- `PHASE_5_SLICE_C_RESULT.md` - implemented Slice C UI/data polish result and verification notes.
+- `PHASE_5_SLICE_C_REVIEW_DISPATCH.md` - role review assignment after Slice C implementation.
+- `PHASE_5_SLICE_C_REVIEW_NOTES.md` - collected Slice C role gates, remaining QA closure condition, and Phase 6 handoff rules.
+- `PHASE_5_SLICE_C_QA_CLOSURE_DISPATCH.md` - final Android QA closure task for Slice C.
+- `PHASE_5_SLICE_C_QA_CLOSURE_RESULT.md` - conditional QA closure result for Slice C.
+- `PHASE_6_ROLE_ASSIGNMENTS.md` - role distribution for Image Generation MVP planning.
+- `PHASE_6_EXECUTION_BRIEF.md` - planning-only execution brief for the Image Generation MVP.
+- `PHASE_6_CONTRACT_REVIEW.md` - collected Phase 6 role gates and Slice A prompt-only implementation contract.
+- `PHASE_6_SLICE_A_EXECUTION_BRIEF.md` - implementation brief for prompt-only image generation with mock polling.
+- `PHASE_6_SLICE_A_RESULT.md` - implemented prompt-only image generation loop result and verification notes.
+- `PHASE_6_SLICE_A_REVIEW_DISPATCH.md` - role review assignment after Slice A implementation.
+- `PHASE_6_SLICE_A_REVIEW_NOTES.md` - collected Slice A review gates, P0 blockers, and stabilization decision.
+- `PHASE_6_SLICE_A_STABILIZATION_BRIEF.md` - follow-up implementation brief for Result Viewer/Library/action-state blockers.
+- `PHASE_6_SLICE_A_STABILIZATION_RESULT.md` - implemented stabilization result, verification, and follow-up gates.
+- `PHASE_6_SLICE_B_PLANNING_BRIEF.md` - planning-only brief for upload/image-to-image before implementation gates.
+- `PHASE_6_SLICE_B_PLANNING_DISPATCH.md` - role-by-role planning task dispatch for upload/image-to-image.
+- `PHASE_6_SLICE_B_CONTRACT_REVIEW.md` - collected Slice B role gates, QA dependency, and implementation entry criteria.
+- `PHASE_7_UI_UX_OVERHAUL_BRIEF.md` - design/product brief for the mobile UI/UX overhaul.
+- `PHASE_7_MASTER_EXECUTION_PLAN.md` - top-level Phase 7 sequence from repo unblock to release readiness.
+- `PHASE_7_GO_NO_GO_DECISION_PACKET.md` - final user decision packet for repo unblock vs mixed-tree work.
+- `PHASE_7_SPRINT_BOARD.md` - role-owned Phase 7 task board, dependencies, statuses and stop rules.
+- `PHASE_7_ROLE_ASSIGNMENTS.md` - role-by-role task dispatch for the UI/UX overhaul.
+- `PHASE_7_CONTRACT_REVIEW.md` - collected UI/UX overhaul gates and Phase 7A implementation decision.
+- `PHASE_7A_EXECUTION_BRIEF.md` - focused first-slice brief for design foundation, auth, and app shell.
+- `PHASE_7A_PRE_IMPLEMENTATION_DISPATCH.md` - role dispatch before Phase 7A code starts.
+- `PHASE_7A_PRE_IMPLEMENTATION_NOTES.md` - collected Phase 7A pre-implementation role notes and pending gates.
+- `PHASE_7A_REPO_SPLIT_PLAN.md` - safe split/staging plan before Phase 7A app-code starts.
+- `PHASE_7A_BASELINE_EVIDENCE.md` - physical Redmi 7 baseline evidence before Phase 7A UI work.
+- `PHASE_7A_DECISION_PACKET.md` - repo, implementation, UI and QA packet for the Phase 7A start decision.
+- `PHASE_7A_REPO_SPLIT_EXECUTION_HANDOFF.md` - dry-run repo split procedure and handoff before Phase 7A code.
+- `PHASE_7A_EXACT_SPLIT_MANIFEST.md` - current dirty-tree file manifest and split groups before Phase 7A code.
+- `PHASE_7A_HUNK_REVIEW_MANIFEST.md` - hunk-level staging guidance for mixed docs, tests, and shared widgets.
+- `PHASE_7A_IMPLEMENTATION_TASK_QUEUE.md` - post-repo-approval implementation tickets for Phase 7A.
+- `PHASE_7A_IMPLEMENTATION_FILE_PLAN.md` - file-level Phase 7A implementation plan after repo unblock.
+- `PHASE_7A_POST_IMPLEMENTATION_REVIEW_PLAN.md` - review gates to run after Phase 7A implementation.
+- `PHASE_7B_SIGNED_IN_WORKFLOW_BRIEF.md` - planning-only brief for signed-in workflow visual redesign.
+- `PHASE_7B_ROLE_ASSIGNMENTS.md` - role responsibilities for Phase 7B planning and future reviews.
+- `PHASE_7B_IMPLEMENTATION_TASK_QUEUE.md` - planning-only implementation tickets for Phase 7B signed-in workflow redesign.
+- `PHASE_7B_IMPLEMENTATION_FILE_PLAN.md` - file-level Phase 7B implementation plan after Phase 7A/repo gates.
+- `PHASE_7B_POST_IMPLEMENTATION_REVIEW_PLAN.md` - review gates to run after future Phase 7B implementation.
+- `PHASE_7C_RELEASE_POLISH_BRIEF.md` - planning-only final mobile polish and release-readiness brief.
+- `PHASE_7C_ROLE_ASSIGNMENTS.md` - role responsibilities for Phase 7C release polish planning.
+- `PHASE_7C_IMPLEMENTATION_TASK_QUEUE.md` - planning-only implementation tickets for Phase 7C final polish.
+- `PHASE_7C_IMPLEMENTATION_FILE_PLAN.md` - file-level Phase 7C release polish plan after Phase 7A/7B.
+- `PHASE_7C_POST_IMPLEMENTATION_REVIEW_PLAN.md` - future review gates for Phase 7C final polish.
+- `PHASE_7_REPO_UNBLOCK_TASK_QUEUE.md` - role-reviewed repo unblock plan before Phase 7 app-code.
+- `PHASE_7_REPO_PREFLIGHT_AUDIT.md` - read-only repo snapshot and role review before unblock approval.
+- `PHASE_7_REPO_SPLIT_FILE_MAP.md` - file-by-file future split map for repo unblock.
+- `PHASE_7_REPO_SPLIT_EXECUTION_RUNBOOK.md` - post-approval runbook for safe repo split execution.
 - `PRODUCT_REQUIREMENTS.md` - product vision, MVP scope, priorities, acceptance.
 - `MOBILE_ARCHITECTURE.md` - recommended stack, app architecture, module boundaries.
 - `UX_SCREENS.md` - screen map, navigation, mobile UX states.
