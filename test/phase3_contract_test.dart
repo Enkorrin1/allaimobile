@@ -3,6 +3,7 @@ import 'package:allai_mobile/core/database/app_database.dart';
 import 'package:allai_mobile/features/billing/data/billing_api_data_source.dart';
 import 'package:allai_mobile/features/billing/data/billing_cache_data_source.dart';
 import 'package:allai_mobile/features/billing/data/billing_repository.dart';
+import 'package:allai_mobile/features/generation_jobs/data/generation_api_data_source.dart';
 import 'package:allai_mobile/features/generation_jobs/data/generation_repository.dart';
 import 'package:allai_mobile/features/generation_jobs/domain/generation_job_models.dart';
 import 'package:allai_mobile/features/tools/data/catalog_api_data_source.dart';
@@ -37,6 +38,22 @@ MockBillingRepository billingRepository(
   );
 }
 
+MockGenerationRepository generationRepository(MockAllAiApi api) {
+  return MockGenerationRepository(MockGenerationApiDataSource(api));
+}
+
+Future<GenerationJobResponse> pollToTerminal(
+  MockGenerationRepository repository,
+  CreateGenerationJobInput input,
+) async {
+  final created = await repository.createJob(input);
+  var response = GenerationJobResponse(job: created.job, assets: const []);
+  while (!response.job.isTerminal) {
+    response = await repository.pollJob(response.job.id);
+  }
+  return response;
+}
+
 void main() {
   test('catalog parses typed models without provider routing keys', () async {
     final database = memoryDatabase();
@@ -64,11 +81,12 @@ void main() {
   test('successful mock job advances to completed and creates asset', () async {
     final database = memoryDatabase();
     final api = MockAllAiApi(database: database);
-    final generation = MockGenerationRepository(api);
+    final generation = generationRepository(api);
     final billing = billingRepository(api, database);
 
     final beforeBalance = await billing.getBalance();
-    final response = await generation.createAndRunJob(
+    final response = await pollToTerminal(
+      generation,
       const CreateGenerationJobInput(
         modelId: 'photo-studio',
         templateId: 'beauty-hook',
@@ -89,14 +107,15 @@ void main() {
   test('failed mock job refunds balance and exposes failed status', () async {
     final database = memoryDatabase();
     final api = MockAllAiApi(database: database);
-    final generation = MockGenerationRepository(api);
+    final generation = generationRepository(api);
     final billing = billingRepository(api, database);
 
     final beforeBalance = await billing.getBalance();
-    final response = await generation.createAndRunJob(
+    final response = await pollToTerminal(
+      generation,
       const CreateGenerationJobInput(
-        modelId: 'video-hook',
-        prompt: 'fail this demo job',
+        modelId: 'photo-studio',
+        prompt: 'fail this image job',
         settings: {'aspectRatio': '9:16'},
         clientRequestId: 'test-fail',
       ),
@@ -111,7 +130,7 @@ void main() {
 
   test('insufficient balance is simulatable', () async {
     final api = MockAllAiApi(database: memoryDatabase(), initialBalance: 10);
-    final generation = MockGenerationRepository(api);
+    final generation = generationRepository(api);
 
     expect(
       () => generation.createJob(
@@ -123,7 +142,7 @@ void main() {
         ),
       ),
       throwsA(
-        isA<MockApiException>().having(
+        isA<GenerationRepositoryException>().having(
           (error) => error.code,
           'code',
           'insufficient_balance',
@@ -161,7 +180,7 @@ void main() {
     () async {
       final database = memoryDatabase();
       final firstApi = MockAllAiApi(database: database);
-      final generation = MockGenerationRepository(firstApi);
+      final generation = generationRepository(firstApi);
 
       final created = await generation.createJob(
         const CreateGenerationJobInput(
@@ -171,13 +190,13 @@ void main() {
           clientRequestId: 'test-active',
         ),
       );
-      final queued = await generation.advanceJob(created.job.id);
+      final queued = await generation.pollJob(created.job.id);
 
-      final secondGeneration = MockGenerationRepository(
+      final secondGeneration = generationRepository(
         MockAllAiApi(database: database),
       );
       final restored = await secondGeneration.getJob(created.job.id);
-      final advanced = await secondGeneration.advanceJob(created.job.id);
+      final advanced = await secondGeneration.pollJob(created.job.id);
 
       expect(restored.job.status, queued.job.status);
       expect(restored.job.status, GenerationJobStatus.queued);
@@ -187,11 +206,12 @@ void main() {
 
   test('completed job and generated asset survive reconstruction', () async {
     final database = memoryDatabase();
-    final firstGeneration = MockGenerationRepository(
+    final firstGeneration = generationRepository(
       MockAllAiApi(database: database),
     );
 
-    final completed = await firstGeneration.createAndRunJob(
+    final completed = await pollToTerminal(
+      firstGeneration,
       const CreateGenerationJobInput(
         modelId: 'photo-studio',
         templateId: 'beauty-hook',
@@ -201,7 +221,7 @@ void main() {
       ),
     );
 
-    final secondGeneration = MockGenerationRepository(
+    final secondGeneration = generationRepository(
       MockAllAiApi(database: database),
     );
     final restored = await secondGeneration.getJob(completed.job.id);
@@ -214,13 +234,14 @@ void main() {
   test('failed job and balance survive reconstruction', () async {
     final database = memoryDatabase();
     final firstApi = MockAllAiApi(database: database);
-    final firstGeneration = MockGenerationRepository(firstApi);
+    final firstGeneration = generationRepository(firstApi);
     final firstBilling = billingRepository(firstApi, database);
 
     final beforeBalance = await firstBilling.getBalance();
-    final failed = await firstGeneration.createAndRunJob(
+    final failed = await pollToTerminal(
+      firstGeneration,
       const CreateGenerationJobInput(
-        modelId: 'video-hook',
+        modelId: 'photo-studio',
         prompt: 'fail persisted job',
         settings: {'aspectRatio': '9:16'},
         clientRequestId: 'test-persist-failed',
@@ -228,7 +249,7 @@ void main() {
     );
 
     final secondApi = MockAllAiApi(database: database);
-    final restored = await MockGenerationRepository(
+    final restored = await generationRepository(
       secondApi,
     ).getJob(failed.job.id);
     final afterBalance = await billingRepository(
@@ -243,7 +264,7 @@ void main() {
 
   test('runtime ids do not collide after reconstruction', () async {
     final database = memoryDatabase();
-    final firstGeneration = MockGenerationRepository(
+    final firstGeneration = generationRepository(
       MockAllAiApi(database: database),
     );
     final first = await firstGeneration.createJob(
@@ -255,7 +276,7 @@ void main() {
       ),
     );
 
-    final secondGeneration = MockGenerationRepository(
+    final secondGeneration = generationRepository(
       MockAllAiApi(database: database),
     );
     final second = await secondGeneration.createJob(

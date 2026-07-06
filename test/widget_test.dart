@@ -1,6 +1,7 @@
 import 'package:allai_mobile/app/allai_app.dart';
 import 'package:allai_mobile/app/router/app_router.dart';
 import 'package:allai_mobile/app/router/app_routes.dart';
+import 'package:allai_mobile/core/api/mock_allai_api.dart';
 import 'package:allai_mobile/core/auth/auth_session.dart';
 import 'package:allai_mobile/core/database/app_database.dart';
 import 'package:allai_mobile/core/database/database_providers.dart';
@@ -8,9 +9,14 @@ import 'package:allai_mobile/core/storage/secure_storage.dart';
 import 'package:allai_mobile/features/auth/data/auth_repository.dart';
 import 'package:allai_mobile/features/auth/domain/auth_models.dart';
 import 'package:allai_mobile/features/billing/data/billing_api_data_source.dart';
+import 'package:allai_mobile/features/generation_jobs/data/generation_api_data_source.dart';
+import 'package:allai_mobile/features/generation_jobs/data/generation_repository.dart';
+import 'package:allai_mobile/features/generation_jobs/domain/generation_job_models.dart';
 import 'package:allai_mobile/features/billing/presentation/providers/billing_providers.dart';
+import 'package:allai_mobile/features/generation_jobs/presentation/providers/generation_job_providers.dart';
 import 'package:allai_mobile/features/tools/data/catalog_api_data_source.dart';
 import 'package:allai_mobile/features/tools/presentation/providers/catalog_providers.dart';
+import 'package:allai_mobile/shared/widgets/generated_asset_preview.dart';
 import 'package:allai_mobile/shared/widgets/media_asset_tile.dart';
 import 'package:allai_mobile/shared/widgets/template_card.dart';
 import 'package:flutter/material.dart';
@@ -28,12 +34,14 @@ Future<TestAppHarness> pumpAllAi(
   WidgetTester tester, {
   bool signedIn = true,
   String initialLocation = AppRoutes.welcome,
+  AppDatabase? database,
   CatalogApiDataSource? catalogApiDataSource,
   BillingApiDataSource? billingApiDataSource,
+  List<Duration>? generationPollingDelays,
 }) async {
-  final database = AppDatabase.memory();
+  final appDatabase = database ?? AppDatabase.memory();
   final storage = InMemorySecureStorage();
-  addTearDown(database.close);
+  if (database == null) addTearDown(appDatabase.close);
 
   if (signedIn) {
     await MockAuthRepository(AuthSessionStore(storage)).login(
@@ -47,19 +55,23 @@ Future<TestAppHarness> pumpAllAi(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        appDatabaseProvider.overrideWithValue(database),
+        appDatabaseProvider.overrideWithValue(appDatabase),
         secureStorageProvider.overrideWithValue(storage),
         initialLocationProvider.overrideWithValue(initialLocation),
         if (catalogApiDataSource != null)
           catalogApiDataSourceProvider.overrideWithValue(catalogApiDataSource),
         if (billingApiDataSource != null)
           billingApiDataSourceProvider.overrideWithValue(billingApiDataSource),
+        if (generationPollingDelays != null)
+          generationPollingDelaysProvider.overrideWithValue(
+            generationPollingDelays,
+          ),
       ],
       child: const AllAiApp(),
     ),
   );
   await tester.pumpAndSettle();
-  return TestAppHarness(database: database, storage: storage);
+  return TestAppHarness(database: appDatabase, storage: storage);
 }
 
 Future<void> pumpRoute(WidgetTester tester) async {
@@ -290,9 +302,77 @@ void main() {
     expect(find.text('Новая генерация'), findsOneWidget);
     expect(find.text('Промпт'), findsOneWidget);
 
-    final costPreview = find.text('Стоимость: от 80 койнов');
+    final costPreview = find.text('Стоимость: 80 койнов');
     await scrollUntilVisible(tester, costPreview);
     expect(costPreview.last, findsOneWidget);
+  });
+
+  testWidgets('Create validates empty prompt before job creation', (
+    tester,
+  ) async {
+    await pumpAllAi(tester, generationPollingDelays: const [Duration.zero]);
+
+    await tester.tap(find.text('Создать'));
+    await pumpRoute(tester);
+
+    await scrollUntilVisible(
+      tester,
+      find.text('Добавьте описание изображения'),
+    );
+    expect(find.text('Добавьте описание изображения'), findsOneWidget);
+
+    final submit = find.widgetWithText(FilledButton, 'Запустить генерацию');
+    await scrollUntilVisible(tester, submit);
+    expect(tester.widget<FilledButton>(submit).onPressed, isNull);
+
+    expect(find.text('Результат'), findsNothing);
+  });
+
+  testWidgets('Create blocks generation with insufficient available coins', (
+    tester,
+  ) async {
+    await pumpAllAi(
+      tester,
+      initialLocation: AppRoutes.create,
+      billingApiDataSource: const _LowBalanceBillingApiDataSource(),
+      generationPollingDelays: const [Duration.zero],
+    );
+
+    await tester.enterText(
+      find.byType(TextField).first,
+      'Проверка недостаточного баланса',
+    );
+    await pumpRoute(tester);
+
+    await scrollUntilVisible(
+      tester,
+      find.text('Недостаточно койнов: нужно 80, доступно 10'),
+    );
+    expect(
+      find.text('Недостаточно койнов: нужно 80, доступно 10'),
+      findsOneWidget,
+    );
+    final submit = find.widgetWithText(FilledButton, 'Запустить генерацию');
+    await scrollUntilVisible(tester, submit);
+    expect(tester.widget<FilledButton>(submit).onPressed, isNull);
+  });
+
+  testWidgets('Failed image job keeps retry copy visible', (tester) async {
+    await pumpAllAi(tester, generationPollingDelays: const [Duration.zero]);
+
+    await tester.tap(find.text('Создать'));
+    await pumpRoute(tester);
+    await tester.enterText(find.byType(TextField).first, 'fail this image job');
+    await pumpRoute(tester);
+
+    await tapVisible(tester, find.text('Запустить генерацию'));
+
+    expect(
+      find.text('Генерация не завершилась. Настройки сохранены.'),
+      findsOneWidget,
+    );
+    expect(find.text('Коины возвращены на баланс.'), findsOneWidget);
+    expect(find.text('Повторить с теми же настройками'), findsOneWidget);
   });
 
   testWidgets('Tools and template detail routes render', (tester) async {
@@ -315,22 +395,90 @@ void main() {
     expect(find.text('Использовать шаблон'), findsOneWidget);
   });
 
+  testWidgets('Tools category filters update catalog results', (tester) async {
+    await pumpAllAi(tester, initialLocation: AppRoutes.tools);
+
+    expect(find.text('AllAI Photo Studio'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Видео'));
+    await pumpRoute(tester);
+
+    expect(find.text('Video Hook Maker'), findsOneWidget);
+    expect(find.text('AllAI Photo Studio'), findsNothing);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Все'));
+    await pumpRoute(tester);
+
+    expect(find.text('AllAI Photo Studio'), findsOneWidget);
+  });
+
   testWidgets('Create can run mock job and open result viewer', (tester) async {
-    await pumpAllAi(tester);
+    await pumpAllAi(tester, generationPollingDelays: const [Duration.zero]);
 
     await tester.tap(find.text('Создать'));
     await pumpRoute(tester);
 
-    final openResult = find.text('Запустить демо-результат');
+    await tester.enterText(
+      find.byType(TextField).first,
+      'Сделай чистый hero shot продукта',
+    );
+    await pumpRoute(tester);
+    final openResult = find.text('Запустить генерацию');
     await tapVisible(tester, openResult);
 
     expect(find.text('Результат'), findsOneWidget);
+    expect(find.byType(GeneratedAssetPreview), findsWidgets);
+    expect(find.textContaining('Could not decompress image'), findsNothing);
     await scrollUntilVisible(tester, find.text('Unboxing'));
     expect(find.text('Unboxing'), findsOneWidget);
     await scrollUntilVisible(tester, find.text('Сохранить'));
     expect(find.text('Сохранить'), findsOneWidget);
+    await tester.tap(find.text('Сохранить'));
+    await tester.pump();
+    expect(
+      find.text('Сохранение появится в следующем обновлении'),
+      findsOneWidget,
+    );
     await scrollUntilVisible(tester, find.text('Метаданные'));
     expect(find.text('Метаданные'), findsOneWidget);
+  });
+
+  testWidgets('Result route for active job shows progress, not actions', (
+    tester,
+  ) async {
+    final database = AppDatabase.memory();
+    addTearDown(database.close);
+    final generation = MockGenerationRepository(
+      MockGenerationApiDataSource(MockAllAiApi(database: database)),
+    );
+    final created = await generation.createJob(
+      const CreateGenerationJobInput(
+        modelId: 'photo-studio',
+        templateId: 'beauty-hook',
+        prompt: 'Активная задача для экрана результата',
+        settings: {'aspectRatio': '4:5'},
+        clientRequestId: 'widget-active-result',
+      ),
+    );
+
+    await pumpAllAi(
+      tester,
+      initialLocation: AppRoutes.result(created.job.id),
+      database: database,
+      generationPollingDelays: const [Duration(minutes: 1)],
+    );
+
+    expect(find.text('Результат'), findsOneWidget);
+    expect(find.text('Проверяем запрос'), findsOneWidget);
+    expect(
+      find.text(
+        'Задача ещё выполняется. Результат появится здесь автоматически после завершения.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Сохранить'), findsNothing);
+    expect(find.text('Поделиться'), findsNothing);
+    expect(find.text('Повторить'), findsNothing);
   });
 
   testWidgets('Pricing route renders disabled demo billing', (tester) async {
@@ -383,16 +531,21 @@ void main() {
 
     await tester.tap(find.text('Студия'));
     await pumpRoute(tester);
-    expect(find.text('Social Studio'), findsOneWidget);
-    await scrollUntilVisible(tester, find.text('Создать social asset'));
-    expect(find.text('Создать social asset'), findsOneWidget);
+    expect(find.text('Студия соцконтента'), findsOneWidget);
+    await scrollUntilVisible(tester, find.text('Создать ассет'));
+    expect(find.text('Создать ассет'), findsOneWidget);
   });
 
   testWidgets('Back from result returns to Library tab', (tester) async {
-    await pumpAllAi(tester);
+    await pumpAllAi(tester, generationPollingDelays: const [Duration.zero]);
     await tester.tap(find.byIcon(Icons.auto_awesome_outlined).last);
     await pumpRoute(tester);
-    await tapVisible(tester, find.text('Запустить демо-результат'));
+    await tester.enterText(
+      find.byType(TextField).first,
+      'Сделай результат для библиотеки',
+    );
+    await pumpRoute(tester);
+    await tapVisible(tester, find.text('Запустить генерацию'));
     await tester.binding.handlePopRoute();
     await pumpRoute(tester);
 
@@ -476,6 +629,31 @@ class _EmptyPackagesBillingApiDataSource implements BillingApiDataSource {
       'coinBalance': 1250,
       'reservedCoins': 0,
       'availableCoins': 1250,
+      'updatedAt': '2026-07-03T09:00:00.000Z',
+    };
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchPackages() async {
+    return const [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchTransactions() async {
+    return const [];
+  }
+}
+
+class _LowBalanceBillingApiDataSource implements BillingApiDataSource {
+  const _LowBalanceBillingApiDataSource();
+
+  @override
+  Future<Map<String, dynamic>> fetchBalance() async {
+    return {
+      'userId': 'demo-user',
+      'coinBalance': 10,
+      'reservedCoins': 0,
+      'availableCoins': 10,
       'updatedAt': '2026-07-03T09:00:00.000Z',
     };
   }

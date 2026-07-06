@@ -12,6 +12,7 @@ class MediaAssetTile extends StatelessWidget {
     required this.icon,
     required this.accentColor,
     this.onTap,
+    this.preview,
     super.key,
   });
 
@@ -22,6 +23,7 @@ class MediaAssetTile extends StatelessWidget {
   final IconData icon;
   final Color accentColor;
   final VoidCallback? onTap;
+  final Widget? preview;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +46,10 @@ class MediaAssetTile extends StatelessWidget {
               ),
               child: Stack(
                 children: [
-                  Center(child: Icon(icon, size: 42, color: accentColor)),
+                  if (preview != null)
+                    Positioned.fill(child: preview!)
+                  else
+                    Center(child: Icon(icon, size: 42, color: accentColor)),
                   Positioned(
                     left: 10,
                     top: 10,
@@ -77,7 +82,10 @@ class MediaAssetTile extends StatelessWidget {
                 const SizedBox(height: 10),
                 StatusChip(
                   label: status,
-                  icon: status == 'Failed' || status == 'Ошибка'
+                  icon:
+                      status == 'Failed' ||
+                          status == 'Ошибка' ||
+                          status == 'РћС€РёР±РєР°'
                       ? Icons.error_outline
                       : Icons.check_circle_outline,
                 ),

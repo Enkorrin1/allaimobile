@@ -58,7 +58,37 @@ class MockAllAiApi {
   ) async {
     await _ensureSeeded();
 
+    final prompt = (request['prompt'] as String? ?? '').trim();
+    if (prompt.isEmpty) {
+      throw const MockApiException(
+        'invalid_prompt',
+        'Добавьте описание изображения',
+      );
+    }
+
     final model = await _findModel(request['modelId'] as String);
+    if (model['isAvailable'] != true) {
+      throw const MockApiException(
+        'model_unavailable',
+        'Выбранная модель временно недоступна.',
+      );
+    }
+    if (request['templateId'] != null) {
+      final template = await _findTemplate(request['templateId'] as String);
+      if (template['isAvailable'] == false) {
+        throw const MockApiException(
+          'template_unavailable',
+          'Выбранный шаблон временно недоступен.',
+        );
+      }
+      if (template['defaultModelId'] != model['id']) {
+        throw const MockApiException(
+          'template_unavailable',
+          'Выбранный шаблон не подходит для этой модели.',
+        );
+      }
+    }
+
     final cost = (model['cost'] as Map<String, dynamic>)['minCoins'] as int;
     final billing = await _readBillingSnapshot();
     final coinBalance = billing['coinBalance'] as int;
@@ -85,7 +115,7 @@ class MockAllAiApi {
       'modelId': request['modelId'],
       if (request['templateId'] != null) 'templateId': request['templateId'],
       'status': 'validating',
-      'prompt': request['prompt'],
+      'prompt': prompt,
       'inputAssetIds': request['inputAssetIds'] ?? <String>[],
       'outputAssetIds': <String>[],
       'settings': request['settings'] ?? <String, Object?>{},
@@ -257,6 +287,22 @@ class MockAllAiApi {
       orElse: () => throw MockApiException(
         'model_not_found',
         'Model not found: $modelId',
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>> _findTemplate(String templateId) async {
+    final catalog = sanitizePublicCatalogJson(
+      await _database.readCatalogSnapshot(_catalogSnapshotId) ?? _catalogJson,
+    );
+    final templates = (catalog['templates'] as List<dynamic>)
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
+    return templates.firstWhere(
+      (template) => template['id'] == templateId,
+      orElse: () => throw MockApiException(
+        'template_unavailable',
+        'Template not found: $templateId',
       ),
     );
   }

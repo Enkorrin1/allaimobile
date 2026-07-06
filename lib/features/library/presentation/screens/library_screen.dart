@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/error_state.dart';
+import '../../../../shared/widgets/generated_asset_preview.dart';
 import '../../../../shared/widgets/loading_state.dart';
 import '../../../../shared/widgets/media_asset_tile.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/status_chip.dart';
+import '../../../generation_jobs/domain/generation_job_models.dart';
 import '../../../tools/presentation/view_models/catalog_ui_mappers.dart';
 import '../../domain/library_history_item.dart';
 import '../providers/library_providers.dart';
@@ -28,7 +30,7 @@ class LibraryScreen extends ConsumerWidget {
           loading: () => const LoadingState(label: 'Загружаем историю'),
           error: (error, stackTrace) => const ErrorState(
             title: 'История недоступна',
-            description: 'Не удалось прочитать mock history.',
+            description: 'Не удалось прочитать историю генераций.',
           ),
           data: (history) => LayoutBuilder(
             builder: (context, constraints) {
@@ -54,12 +56,12 @@ class LibraryScreen extends ConsumerWidget {
                       sliver: SliverList.list(
                         children: [
                           Text(
-                            'История и повторное использование',
+                            'История генераций',
                             style: theme.textTheme.headlineMedium,
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'История строится из mock GenerationJob, Asset и catalog metadata.',
+                            'Здесь сохраняются активные, готовые и неудачные генерации с моделью, датой и стоимостью.',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
@@ -78,8 +80,8 @@ class LibraryScreen extends ConsumerWidget {
                                 icon: Icons.image_outlined,
                               ),
                               StatusChip(
-                                label: 'Видео',
-                                icon: Icons.video_camera_back_outlined,
+                                label: 'В работе',
+                                icon: Icons.timelapse,
                               ),
                               StatusChip(
                                 label: 'Ошибки',
@@ -117,18 +119,6 @@ class LibraryScreen extends ConsumerWidget {
                             ),
                           ),
                   ),
-                  if (history.isNotEmpty)
-                    const SliverPadding(
-                      padding: EdgeInsets.fromLTRB(16, 0, 16, 24),
-                      sliver: SliverToBoxAdapter(
-                        child: EmptyState(
-                          icon: Icons.filter_alt_off_outlined,
-                          title: 'Пустой фильтр',
-                          description:
-                              'Так будет выглядеть состояние, когда выбранный фильтр не нашел результатов.',
-                        ),
-                      ),
-                    ),
                 ],
               );
             },
@@ -147,6 +137,8 @@ class _HistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final asset = item.outputAsset;
+    final isActive = !item.job.isTerminal;
+    final targetId = asset?.id ?? item.job.id;
 
     return MediaAssetTile(
       title: item.template?.title ?? item.model.name,
@@ -155,12 +147,27 @@ class _HistoryTile extends StatelessWidget {
           : assetKindLabel(asset.type),
       status: jobStatusLabel(item.job.status),
       subtitle:
-          '${formatDateLabel(item.job.updatedAt)} • ${item.job.costCoins} койнов',
+          '${formatDateLabel(item.job.updatedAt)} • ${item.job.costCoins} койнов${isActive ? ' • ${generationStatusProgress(item.job)}' : ''}',
       icon: asset == null
           ? modelCategoryIcon(item.model.category)
           : assetIcon(asset.type),
       accentColor: modelCategoryColor(item.model.category),
-      onTap: () => context.push(AppRoutes.result(asset?.id ?? item.job.id)),
+      preview: asset == null
+          ? null
+          : GeneratedAssetPreview(
+              url: asset.url,
+              thumbnailUrl: asset.thumbnailUrl,
+              isVideo: asset.type == AssetType.video,
+              fallbackIcon: assetIcon(asset.type),
+              accentColor: modelCategoryColor(item.model.category),
+            ),
+      onTap: () => context.push(AppRoutes.result(targetId)),
     );
   }
+}
+
+String generationStatusProgress(GenerationJob job) {
+  final progress = job.progress;
+  if (progress == null) return jobStatusLabel(job.status);
+  return '${(progress * 100).round()}%';
 }

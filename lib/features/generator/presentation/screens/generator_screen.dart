@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../features/billing/presentation/providers/billing_providers.dart';
 import '../../../../features/billing/presentation/view_models/billing_copy.dart';
+import '../../../../features/generation_jobs/domain/generation_job_models.dart';
 import '../../../../features/generation_jobs/presentation/providers/generation_job_providers.dart';
 import '../../../../features/tools/domain/catalog_models.dart';
 import '../../../../features/tools/presentation/providers/catalog_providers.dart';
@@ -29,12 +31,35 @@ class GeneratorScreen extends ConsumerStatefulWidget {
 }
 
 class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
+  final _promptController = TextEditingController();
   String? _selectedModeId;
+  String _prompt = '';
+  String? _promptError;
+  bool _restoreRequested = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _restoreRequested) return;
+      _restoreRequested = true;
+      ref
+          .read(generationJobControllerProvider.notifier)
+          .restoreLatestActiveJob();
+    });
+  }
+
+  @override
+  void dispose() {
+    _promptController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final catalogAsync = ref.watch(catalogStateProvider);
+    final balanceAsync = ref.watch(balanceStateProvider);
     final jobState = ref.watch(generationJobControllerProvider);
 
     return Scaffold(
@@ -58,40 +83,59 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
           ),
           data: (state) {
             final catalog = state.catalog;
-            final enabledModes = catalog.modes
-                .where((mode) => mode.isEnabled)
+            final imageModes = catalog.modes
+                .where(
+                  (mode) =>
+                      mode.isEnabled && mode.category == AiModelCategory.image,
+                )
                 .toList();
-            final availableModels = catalog.models
+            final imageModels = catalog.models.where(_isImageCapable).toList();
+            final availableImageModels = imageModels
                 .where((model) => model.isAvailable)
                 .toList();
-            if (enabledModes.isEmpty || availableModels.isEmpty) {
+
+            if (imageModes.isEmpty || availableImageModels.isEmpty) {
               return ErrorState(
-                title: 'Нет доступных моделей',
+                title: 'Нет доступных моделей для фото',
                 description:
                     'Модели появятся после обновления каталога. Попробуйте позже.',
                 onRetry: () => ref.invalidate(catalogStateProvider),
               );
             }
 
-            final selectedModeId = _selectedModeId ?? enabledModes.first.id;
-            final selectedMode = catalog.modes.firstWhere(
+            final selectedModeId =
+                imageModes.any((mode) => mode.id == _selectedModeId)
+                ? _selectedModeId!
+                : imageModes.first.id;
+            final selectedMode = imageModes.firstWhere(
               (mode) => mode.id == selectedModeId,
-              orElse: () => enabledModes.first,
             );
             final selectedModel = _selectModelForMode(catalog, selectedMode);
-            final selectedTemplate = catalog.templates.firstWhere(
-              (template) =>
-                  template.defaultModelId == selectedModel.id &&
-                  template.isAvailable,
-              orElse: () => catalog.templates.first,
+            final selectedTemplates = selectedModel == null
+                ? <Template>[]
+                : _templatesForModel(catalog, selectedModel);
+            final selectedTemplate = selectedTemplates.isEmpty
+                ? null
+                : selectedTemplates.first;
+            final balance = balanceAsync.asData?.value.data;
+            final availableCoins = balance?.availableCoins;
+            final generationCost = selectedModel?.cost.minCoins ?? 0;
+            final disabledReason = _disabledReason(
+              model: selectedModel,
+              template: selectedTemplate,
+              generationCost: generationCost,
+              availableCoins: availableCoins,
+              balanceIsLoading: balanceAsync.isLoading,
+              prompt: _prompt,
             );
-            final modeOptions = catalog.modes
+            final canSubmit = !jobState.isLoading && disabledReason == null;
+            final modeOptions = imageModes
                 .map(
                   (mode) => GenerationModeOption(
                     id: mode.id,
                     label: mode.title,
                     icon: modelCategoryIcon(mode.category),
-                    description: mode.isEnabled ? 'Доступно' : 'Скоро',
+                    description: 'Только описание',
                   ),
                 )
                 .toList();
@@ -107,7 +151,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
               children: [
                 if (state.isFromCache) ...[
                   const StatusChip(
-                    label: 'Показываем сохраненные данные',
+                    label: 'Показываем сохранённые данные',
                     icon: Icons.offline_pin_outlined,
                   ),
                   const SizedBox(height: 12),
@@ -115,7 +159,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                 Text('Новая генерация', style: theme.textTheme.headlineMedium),
                 const SizedBox(height: 8),
                 Text(
-                  'Выберите режим, опишите задачу и проверьте стоимость перед запуском.',
+                  'Опишите изображение, проверьте стоимость и запустите задачу. Референс-загрузка появится в следующем обновлении.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -124,12 +168,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                 GenerationModeSelector(
                   options: modeOptions,
                   selectedId: selectedModeId,
-                  onSelected: (id) {
-                    final mode = catalog.modes.firstWhere(
-                      (candidate) => candidate.id == id,
-                    );
-                    if (mode.isEnabled) setState(() => _selectedModeId = id);
-                  },
+                  onSelected: (id) => setState(() => _selectedModeId = id),
                 ),
                 const SizedBox(height: 10),
                 AppCard(
@@ -142,7 +181,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          '${selectedMode.title}: ${costLabel(selectedModel.cost)}',
+                          '${selectedMode.title}: ${selectedModel?.name ?? 'модель недоступна'}',
                           style: theme.textTheme.titleMedium,
                         ),
                       ),
@@ -150,19 +189,27 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const AppTextField(
+                AppTextField(
                   label: 'Промпт',
                   hintText:
-                      'Опишите продукт, аудиторию, сцену, стиль, камеру или движение.',
+                      'Например: чистый рекламный кадр продукта на светлом фоне, мягкий свет, формат 4:5.',
+                  controller: _promptController,
                   minLines: 4,
                   maxLines: 6,
                   textInputAction: TextInputAction.newline,
+                  errorText: _promptError,
+                  onChanged: (value) {
+                    setState(() {
+                      _prompt = value;
+                      if (_promptError != null) _promptError = null;
+                    });
+                  },
                 ),
                 const SizedBox(height: 16),
                 const UploadPlaceholder(
-                  title: 'Загрузить источник',
+                  title: 'Референс-изображение',
                   description:
-                      'Слот для медиа. Загрузка файлов будет подключена после серверного решения.',
+                      'Загрузка изображения появится в следующем обновлении. Сейчас доступна генерация по описанию.',
                 ),
                 const SizedBox(height: 20),
                 SectionHeader(
@@ -171,7 +218,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                   onActionPressed: () => context.push(AppRoutes.tools),
                 ),
                 const SizedBox(height: 8),
-                for (final model in catalog.models.take(2)) ...[
+                for (final model in imageModels.take(2)) ...[
                   ModelCard(
                     name: model.name,
                     category: modelCategoryLabel(model.category),
@@ -191,72 +238,116 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                 const SizedBox(height: 8),
                 const SectionHeader(title: 'Стартовый шаблон'),
                 const SizedBox(height: 8),
-                for (final template in catalog.templates.take(2)) ...[
-                  TemplateCard(
-                    title: template.title,
-                    badge: templateAvailabilityLabel(template),
-                    description: template.description,
-                    costLabel: costLabel(
-                      catalog.models
-                          .firstWhere(
-                            (model) => model.id == template.defaultModelId,
-                          )
-                          .cost,
+                if (selectedTemplates.isEmpty)
+                  const AppCard(
+                    child: Text(
+                      'Для выбранной модели пока нет доступного фото-шаблона.',
                     ),
-                    icon: templateIcon(template.category),
-                    accentColor: templateColor(template.category),
-                    onTap: template.isAvailable
-                        ? () => context.push(
-                            AppRoutes.templateDetail(template.id),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                ],
+                  )
+                else
+                  for (final template in selectedTemplates.take(2)) ...[
+                    TemplateCard(
+                      title: template.title,
+                      badge: templateAvailabilityLabel(template),
+                      description: template.description,
+                      costLabel: costLabel(selectedModel!.cost),
+                      icon: templateIcon(template.category),
+                      accentColor: templateColor(template.category),
+                      onTap: () =>
+                          context.push(AppRoutes.templateDetail(template.id)),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                 const SizedBox(height: 8),
                 const SectionHeader(title: 'Настройки'),
                 const SizedBox(height: 8),
-                const Wrap(
+                Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    StatusChip(label: 'Формат 9:16', icon: Icons.tune),
-                    StatusChip(label: 'Высокое качество', icon: Icons.tune),
-                    StatusChip(label: 'Коммерческий стиль', icon: Icons.tune),
                     StatusChip(
-                      label: 'Уведомить о готовности',
+                      label:
+                          'Формат ${selectedTemplate?.targetAspectRatio ?? selectedModel?.capabilities.aspectRatios?.first ?? '9:16'}',
                       icon: Icons.tune,
+                    ),
+                    const StatusChip(
+                      label: 'По описанию',
+                      icon: Icons.edit_outlined,
+                    ),
+                    const StatusChip(
+                      label: 'Референс скоро',
+                      icon: Icons.lock_outline,
                     ),
                   ],
                 ),
                 const SizedBox(height: 18),
                 CostPreviewCard(
-                  costLabel: 'Стоимость: ${costLabel(selectedModel.cost)}',
-                  reserveCopy: billingReserveCopy,
-                  warning: jobState.hasError ? insufficientCoinsCopy : null,
+                  costLabel: 'Стоимость: ${formatCoins(generationCost)} койнов',
+                  reserveCopy:
+                      'Доступно: ${availableCoins == null ? 'загружаем баланс' : formatCoins(availableCoins)}. $billingReserveCopy',
+                  warning: disabledReason,
+                ),
+                if (_promptError != null) ...[
+                  const SizedBox(height: 12),
+                  AppCard(
+                    child: Text(
+                      _promptError!,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.error,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                _JobStateCard(
+                  state: jobState,
+                  onOpenResult: (response) => _openResult(context, response),
+                  onRetry: (job) async {
+                    final response = await ref
+                        .read(generationJobControllerProvider.notifier)
+                        .retryJob(job);
+                    if (!context.mounted || response == null) return;
+                    _openResult(context, response);
+                  },
                 ),
                 const SizedBox(height: 20),
                 AppButton(
                   label: jobState.isLoading
-                      ? 'Запускаем задачу'
-                      : 'Запустить демо-результат',
+                      ? 'Создаём задачу'
+                      : 'Запустить генерацию',
                   icon: Icons.auto_awesome,
-                  onPressed: jobState.isLoading
-                      ? null
-                      : () async {
+                  onPressed: canSubmit
+                      ? () async {
+                          final prompt = _promptController.text.trim();
+                          if (prompt.isEmpty) {
+                            setState(
+                              () => _promptError =
+                                  'Добавьте описание изображения',
+                            );
+                            return;
+                          }
+
                           final response = await ref
                               .read(generationJobControllerProvider.notifier)
-                              .createMockJob(
-                                modelId: selectedModel.id,
-                                templateId: selectedTemplate.id,
-                                prompt: selectedTemplate.defaultPrompt,
+                              .createPromptOnlyJob(
+                                modelId: selectedModel!.id,
+                                templateId: selectedTemplate?.id,
+                                prompt: prompt,
+                                settings: {
+                                  'aspectRatio':
+                                      selectedTemplate?.targetAspectRatio ??
+                                      selectedModel
+                                          .capabilities
+                                          .aspectRatios
+                                          ?.first ??
+                                      '9:16',
+                                },
                               );
                           if (!context.mounted || response == null) return;
-                          final targetId = response.assets.isNotEmpty
-                              ? response.assets.first.id
-                              : response.job.id;
-                          context.push(AppRoutes.result(targetId));
-                        },
+                          _openResult(context, response);
+                        }
+                      : null,
                 ),
               ],
             );
@@ -266,11 +357,175 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
     );
   }
 
-  AiModel _selectModelForMode(CatalogResponse catalog, GenerationMode mode) {
-    final matches = catalog.models.where(
-      (model) => model.category == mode.category && model.isAvailable,
+  AiModel? _selectModelForMode(CatalogResponse catalog, GenerationMode mode) {
+    final matchingModels = catalog.models.where(
+      (model) => model.category == mode.category && _isImageCapable(model),
     );
-    if (matches.isNotEmpty) return matches.first;
-    return catalog.models.firstWhere((model) => model.isAvailable);
+    final available = matchingModels.where((model) => model.isAvailable);
+    if (available.isNotEmpty) return available.first;
+    return matchingModels.isEmpty ? null : matchingModels.first;
+  }
+
+  List<Template> _templatesForModel(CatalogResponse catalog, AiModel model) {
+    return catalog.templates
+        .where(
+          (template) =>
+              template.defaultModelId == model.id &&
+              template.isAvailable &&
+              template.outputFormat == OutputFormat.image,
+        )
+        .toList();
+  }
+
+  bool _isImageCapable(AiModel model) {
+    return model.supportedOutputs.contains(SupportedOutput.image) &&
+        model.category == AiModelCategory.image;
+  }
+
+  String? _disabledReason({
+    required AiModel? model,
+    required Template? template,
+    required int generationCost,
+    required int? availableCoins,
+    required bool balanceIsLoading,
+    required String prompt,
+  }) {
+    if (prompt.trim().isEmpty) return 'Добавьте описание изображения';
+    if (model == null) return 'Нет доступной модели для изображения.';
+    if (!model.isAvailable) return modelAvailabilityDescription(model);
+    if (template == null) {
+      return 'Для выбранной модели пока нет доступного фото-шаблона.';
+    }
+    if (availableCoins == null) {
+      return balanceIsLoading
+          ? 'Загружаем баланс.'
+          : 'Баланс временно недоступен.';
+    }
+    if (generationCost > availableCoins) {
+      return insufficientCoinsQuoteCopy(
+        cost: generationCost,
+        available: availableCoins,
+      );
+    }
+    return null;
+  }
+
+  void _openResult(BuildContext context, GenerationJobResponse response) {
+    if (response.job.status != GenerationJobStatus.completed ||
+        response.assets.isEmpty) {
+      return;
+    }
+    context.push(AppRoutes.result(response.assets.first.id));
+  }
+}
+
+class _JobStateCard extends StatelessWidget {
+  const _JobStateCard({
+    required this.state,
+    required this.onOpenResult,
+    required this.onRetry,
+  });
+
+  final AsyncValue<GenerationJobResponse?> state;
+  final ValueChanged<GenerationJobResponse> onOpenResult;
+  final ValueChanged<GenerationJob> onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (state.isLoading) {
+      return const AppCard(
+        child: Row(
+          children: [
+            SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 12),
+            Expanded(child: Text('Создаём задачу')),
+          ],
+        ),
+      );
+    }
+
+    if (state.hasError) {
+      return AppCard(
+        child: Text(
+          generationErrorCopy(state.error!),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.error,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      );
+    }
+
+    final response = state.asData?.value;
+    if (response == null) return const SizedBox.shrink();
+
+    final job = response.job;
+    final progress = job.progress?.clamp(0.0, 1.0).toDouble();
+    final isFailed = job.status == GenerationJobStatus.failed;
+    final isCompleted = job.status == GenerationJobStatus.completed;
+
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isFailed ? Icons.error_outline : Icons.auto_awesome,
+                color: isFailed
+                    ? theme.colorScheme.error
+                    : theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  generationProgressLabel(job.status),
+                  style: theme.textTheme.titleMedium,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          LinearProgressIndicator(value: isCompleted ? 1 : progress),
+          if (isFailed) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Генерация не завершилась. Настройки сохранены.',
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              job.costCoins > 0
+                  ? 'Коины возвращены на баланс.'
+                  : 'Списание не выполнено.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            AppButton(
+              label: 'Повторить с теми же настройками',
+              icon: Icons.refresh,
+              secondary: true,
+              onPressed: () => onRetry(job),
+            ),
+          ] else if (isCompleted && response.assets.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            AppButton(
+              label: 'Открыть результат',
+              icon: Icons.open_in_new,
+              secondary: true,
+              onPressed: () => onOpenResult(response),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
