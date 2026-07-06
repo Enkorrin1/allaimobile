@@ -43,10 +43,13 @@ class StudioScreen extends ConsumerWidget {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Text('Social Studio', style: theme.textTheme.headlineMedium),
+                Text(
+                  'Студия соцконтента',
+                  style: theme.textTheme.headlineMedium,
+                ),
                 const SizedBox(height: 8),
                 Text(
-                  'Готовьте social assets, captions и export-пакеты до появления прямой публикации.',
+                  'Готовьте ассеты для соцсетей, подписи и пакеты экспорта до появления прямой публикации.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -70,7 +73,7 @@ class StudioScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 18),
-                const SectionHeader(title: 'Social-ready шаблоны'),
+                const SectionHeader(title: 'Шаблоны для соцсетей'),
                 const SizedBox(height: 8),
                 for (final template in socialTemplates) ...[
                   TemplateCard(
@@ -99,18 +102,18 @@ class StudioScreen extends ConsumerWidget {
                   icon: Icons.dashboard_customize_outlined,
                   title: 'Черновики',
                   description:
-                      'TikTok, YouTube Shorts, Pinterest и Reels workflows появятся после MVP generation.',
+                      'Сценарии для TikTok, YouTube Shorts, Pinterest и Reels появятся после MVP-генерации.',
                 ),
                 const SizedBox(height: 12),
                 const PlaceholderCard(
                   icon: Icons.inventory_2_outlined,
-                  title: 'Export package',
+                  title: 'Пакет экспорта',
                   description:
-                      'Сохраняйте captions, prompts и generated assets вместе для публикации.',
+                      'Сохраняйте подписи, промпты и готовые ассеты вместе для публикации.',
                 ),
                 const SizedBox(height: 18),
                 AppButton(
-                  label: 'Создать social asset',
+                  label: 'Создать ассет',
                   icon: Icons.auto_awesome,
                   onPressed: () => context.go(AppRoutes.create),
                 ),

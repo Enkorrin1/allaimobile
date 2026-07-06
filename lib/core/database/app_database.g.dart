@@ -2558,6 +2558,43 @@ class $CoinPackagesTable extends CoinPackages
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _isAvailableMeta = const VerificationMeta(
+    'isAvailable',
+  );
+  @override
+  late final GeneratedColumn<bool> isAvailable = GeneratedColumn<bool>(
+    'is_available',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_available" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _priceLabelMeta = const VerificationMeta(
+    'priceLabel',
+  );
+  @override
+  late final GeneratedColumn<String> priceLabel = GeneratedColumn<String>(
+    'price_label',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _displayOrderMeta = const VerificationMeta(
+    'displayOrder',
+  );
+  @override
+  late final GeneratedColumn<int> displayOrder = GeneratedColumn<int>(
+    'display_order',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2565,6 +2602,9 @@ class $CoinPackagesTable extends CoinPackages
     coinAmount,
     description,
     isHighlighted,
+    isAvailable,
+    priceLabel,
+    displayOrder,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2619,6 +2659,30 @@ class $CoinPackagesTable extends CoinPackages
         ),
       );
     }
+    if (data.containsKey('is_available')) {
+      context.handle(
+        _isAvailableMeta,
+        isAvailable.isAcceptableOrUnknown(
+          data['is_available']!,
+          _isAvailableMeta,
+        ),
+      );
+    }
+    if (data.containsKey('price_label')) {
+      context.handle(
+        _priceLabelMeta,
+        priceLabel.isAcceptableOrUnknown(data['price_label']!, _priceLabelMeta),
+      );
+    }
+    if (data.containsKey('display_order')) {
+      context.handle(
+        _displayOrderMeta,
+        displayOrder.isAcceptableOrUnknown(
+          data['display_order']!,
+          _displayOrderMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2648,6 +2712,18 @@ class $CoinPackagesTable extends CoinPackages
         DriftSqlType.bool,
         data['${effectivePrefix}is_highlighted'],
       )!,
+      isAvailable: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_available'],
+      )!,
+      priceLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}price_label'],
+      ),
+      displayOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}display_order'],
+      ),
     );
   }
 
@@ -2663,12 +2739,18 @@ class CoinPackage extends DataClass implements Insertable<CoinPackage> {
   final int coinAmount;
   final String description;
   final bool isHighlighted;
+  final bool isAvailable;
+  final String? priceLabel;
+  final int? displayOrder;
   const CoinPackage({
     required this.id,
     required this.name,
     required this.coinAmount,
     required this.description,
     required this.isHighlighted,
+    required this.isAvailable,
+    this.priceLabel,
+    this.displayOrder,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2678,6 +2760,13 @@ class CoinPackage extends DataClass implements Insertable<CoinPackage> {
     map['coin_amount'] = Variable<int>(coinAmount);
     map['description'] = Variable<String>(description);
     map['is_highlighted'] = Variable<bool>(isHighlighted);
+    map['is_available'] = Variable<bool>(isAvailable);
+    if (!nullToAbsent || priceLabel != null) {
+      map['price_label'] = Variable<String>(priceLabel);
+    }
+    if (!nullToAbsent || displayOrder != null) {
+      map['display_order'] = Variable<int>(displayOrder);
+    }
     return map;
   }
 
@@ -2688,6 +2777,13 @@ class CoinPackage extends DataClass implements Insertable<CoinPackage> {
       coinAmount: Value(coinAmount),
       description: Value(description),
       isHighlighted: Value(isHighlighted),
+      isAvailable: Value(isAvailable),
+      priceLabel: priceLabel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(priceLabel),
+      displayOrder: displayOrder == null && nullToAbsent
+          ? const Value.absent()
+          : Value(displayOrder),
     );
   }
 
@@ -2702,6 +2798,9 @@ class CoinPackage extends DataClass implements Insertable<CoinPackage> {
       coinAmount: serializer.fromJson<int>(json['coinAmount']),
       description: serializer.fromJson<String>(json['description']),
       isHighlighted: serializer.fromJson<bool>(json['isHighlighted']),
+      isAvailable: serializer.fromJson<bool>(json['isAvailable']),
+      priceLabel: serializer.fromJson<String?>(json['priceLabel']),
+      displayOrder: serializer.fromJson<int?>(json['displayOrder']),
     );
   }
   @override
@@ -2713,6 +2812,9 @@ class CoinPackage extends DataClass implements Insertable<CoinPackage> {
       'coinAmount': serializer.toJson<int>(coinAmount),
       'description': serializer.toJson<String>(description),
       'isHighlighted': serializer.toJson<bool>(isHighlighted),
+      'isAvailable': serializer.toJson<bool>(isAvailable),
+      'priceLabel': serializer.toJson<String?>(priceLabel),
+      'displayOrder': serializer.toJson<int?>(displayOrder),
     };
   }
 
@@ -2722,12 +2824,18 @@ class CoinPackage extends DataClass implements Insertable<CoinPackage> {
     int? coinAmount,
     String? description,
     bool? isHighlighted,
+    bool? isAvailable,
+    Value<String?> priceLabel = const Value.absent(),
+    Value<int?> displayOrder = const Value.absent(),
   }) => CoinPackage(
     id: id ?? this.id,
     name: name ?? this.name,
     coinAmount: coinAmount ?? this.coinAmount,
     description: description ?? this.description,
     isHighlighted: isHighlighted ?? this.isHighlighted,
+    isAvailable: isAvailable ?? this.isAvailable,
+    priceLabel: priceLabel.present ? priceLabel.value : this.priceLabel,
+    displayOrder: displayOrder.present ? displayOrder.value : this.displayOrder,
   );
   CoinPackage copyWithCompanion(CoinPackagesCompanion data) {
     return CoinPackage(
@@ -2742,6 +2850,15 @@ class CoinPackage extends DataClass implements Insertable<CoinPackage> {
       isHighlighted: data.isHighlighted.present
           ? data.isHighlighted.value
           : this.isHighlighted,
+      isAvailable: data.isAvailable.present
+          ? data.isAvailable.value
+          : this.isAvailable,
+      priceLabel: data.priceLabel.present
+          ? data.priceLabel.value
+          : this.priceLabel,
+      displayOrder: data.displayOrder.present
+          ? data.displayOrder.value
+          : this.displayOrder,
     );
   }
 
@@ -2752,14 +2869,25 @@ class CoinPackage extends DataClass implements Insertable<CoinPackage> {
           ..write('name: $name, ')
           ..write('coinAmount: $coinAmount, ')
           ..write('description: $description, ')
-          ..write('isHighlighted: $isHighlighted')
+          ..write('isHighlighted: $isHighlighted, ')
+          ..write('isAvailable: $isAvailable, ')
+          ..write('priceLabel: $priceLabel, ')
+          ..write('displayOrder: $displayOrder')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, coinAmount, description, isHighlighted);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    coinAmount,
+    description,
+    isHighlighted,
+    isAvailable,
+    priceLabel,
+    displayOrder,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2768,7 +2896,10 @@ class CoinPackage extends DataClass implements Insertable<CoinPackage> {
           other.name == this.name &&
           other.coinAmount == this.coinAmount &&
           other.description == this.description &&
-          other.isHighlighted == this.isHighlighted);
+          other.isHighlighted == this.isHighlighted &&
+          other.isAvailable == this.isAvailable &&
+          other.priceLabel == this.priceLabel &&
+          other.displayOrder == this.displayOrder);
 }
 
 class CoinPackagesCompanion extends UpdateCompanion<CoinPackage> {
@@ -2777,6 +2908,9 @@ class CoinPackagesCompanion extends UpdateCompanion<CoinPackage> {
   final Value<int> coinAmount;
   final Value<String> description;
   final Value<bool> isHighlighted;
+  final Value<bool> isAvailable;
+  final Value<String?> priceLabel;
+  final Value<int?> displayOrder;
   final Value<int> rowid;
   const CoinPackagesCompanion({
     this.id = const Value.absent(),
@@ -2784,6 +2918,9 @@ class CoinPackagesCompanion extends UpdateCompanion<CoinPackage> {
     this.coinAmount = const Value.absent(),
     this.description = const Value.absent(),
     this.isHighlighted = const Value.absent(),
+    this.isAvailable = const Value.absent(),
+    this.priceLabel = const Value.absent(),
+    this.displayOrder = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CoinPackagesCompanion.insert({
@@ -2792,6 +2929,9 @@ class CoinPackagesCompanion extends UpdateCompanion<CoinPackage> {
     required int coinAmount,
     required String description,
     this.isHighlighted = const Value.absent(),
+    this.isAvailable = const Value.absent(),
+    this.priceLabel = const Value.absent(),
+    this.displayOrder = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -2803,6 +2943,9 @@ class CoinPackagesCompanion extends UpdateCompanion<CoinPackage> {
     Expression<int>? coinAmount,
     Expression<String>? description,
     Expression<bool>? isHighlighted,
+    Expression<bool>? isAvailable,
+    Expression<String>? priceLabel,
+    Expression<int>? displayOrder,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2811,6 +2954,9 @@ class CoinPackagesCompanion extends UpdateCompanion<CoinPackage> {
       if (coinAmount != null) 'coin_amount': coinAmount,
       if (description != null) 'description': description,
       if (isHighlighted != null) 'is_highlighted': isHighlighted,
+      if (isAvailable != null) 'is_available': isAvailable,
+      if (priceLabel != null) 'price_label': priceLabel,
+      if (displayOrder != null) 'display_order': displayOrder,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2821,6 +2967,9 @@ class CoinPackagesCompanion extends UpdateCompanion<CoinPackage> {
     Value<int>? coinAmount,
     Value<String>? description,
     Value<bool>? isHighlighted,
+    Value<bool>? isAvailable,
+    Value<String?>? priceLabel,
+    Value<int?>? displayOrder,
     Value<int>? rowid,
   }) {
     return CoinPackagesCompanion(
@@ -2829,6 +2978,9 @@ class CoinPackagesCompanion extends UpdateCompanion<CoinPackage> {
       coinAmount: coinAmount ?? this.coinAmount,
       description: description ?? this.description,
       isHighlighted: isHighlighted ?? this.isHighlighted,
+      isAvailable: isAvailable ?? this.isAvailable,
+      priceLabel: priceLabel ?? this.priceLabel,
+      displayOrder: displayOrder ?? this.displayOrder,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2851,6 +3003,15 @@ class CoinPackagesCompanion extends UpdateCompanion<CoinPackage> {
     if (isHighlighted.present) {
       map['is_highlighted'] = Variable<bool>(isHighlighted.value);
     }
+    if (isAvailable.present) {
+      map['is_available'] = Variable<bool>(isAvailable.value);
+    }
+    if (priceLabel.present) {
+      map['price_label'] = Variable<String>(priceLabel.value);
+    }
+    if (displayOrder.present) {
+      map['display_order'] = Variable<int>(displayOrder.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2865,6 +3026,9 @@ class CoinPackagesCompanion extends UpdateCompanion<CoinPackage> {
           ..write('coinAmount: $coinAmount, ')
           ..write('description: $description, ')
           ..write('isHighlighted: $isHighlighted, ')
+          ..write('isAvailable: $isAvailable, ')
+          ..write('priceLabel: $priceLabel, ')
+          ..write('displayOrder: $displayOrder, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4654,6 +4818,9 @@ typedef $$CoinPackagesTableCreateCompanionBuilder =
       required int coinAmount,
       required String description,
       Value<bool> isHighlighted,
+      Value<bool> isAvailable,
+      Value<String?> priceLabel,
+      Value<int?> displayOrder,
       Value<int> rowid,
     });
 typedef $$CoinPackagesTableUpdateCompanionBuilder =
@@ -4663,6 +4830,9 @@ typedef $$CoinPackagesTableUpdateCompanionBuilder =
       Value<int> coinAmount,
       Value<String> description,
       Value<bool> isHighlighted,
+      Value<bool> isAvailable,
+      Value<String?> priceLabel,
+      Value<int?> displayOrder,
       Value<int> rowid,
     });
 
@@ -4697,6 +4867,21 @@ class $$CoinPackagesTableFilterComposer
 
   ColumnFilters<bool> get isHighlighted => $composableBuilder(
     column: $table.isHighlighted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isAvailable => $composableBuilder(
+    column: $table.isAvailable,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get priceLabel => $composableBuilder(
+    column: $table.priceLabel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get displayOrder => $composableBuilder(
+    column: $table.displayOrder,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -4734,6 +4919,21 @@ class $$CoinPackagesTableOrderingComposer
     column: $table.isHighlighted,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isAvailable => $composableBuilder(
+    column: $table.isAvailable,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get priceLabel => $composableBuilder(
+    column: $table.priceLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get displayOrder => $composableBuilder(
+    column: $table.displayOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CoinPackagesTableAnnotationComposer
@@ -4763,6 +4963,21 @@ class $$CoinPackagesTableAnnotationComposer
 
   GeneratedColumn<bool> get isHighlighted => $composableBuilder(
     column: $table.isHighlighted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isAvailable => $composableBuilder(
+    column: $table.isAvailable,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get priceLabel => $composableBuilder(
+    column: $table.priceLabel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get displayOrder => $composableBuilder(
+    column: $table.displayOrder,
     builder: (column) => column,
   );
 }
@@ -4803,6 +5018,9 @@ class $$CoinPackagesTableTableManager
                 Value<int> coinAmount = const Value.absent(),
                 Value<String> description = const Value.absent(),
                 Value<bool> isHighlighted = const Value.absent(),
+                Value<bool> isAvailable = const Value.absent(),
+                Value<String?> priceLabel = const Value.absent(),
+                Value<int?> displayOrder = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CoinPackagesCompanion(
                 id: id,
@@ -4810,6 +5028,9 @@ class $$CoinPackagesTableTableManager
                 coinAmount: coinAmount,
                 description: description,
                 isHighlighted: isHighlighted,
+                isAvailable: isAvailable,
+                priceLabel: priceLabel,
+                displayOrder: displayOrder,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -4819,6 +5040,9 @@ class $$CoinPackagesTableTableManager
                 required int coinAmount,
                 required String description,
                 Value<bool> isHighlighted = const Value.absent(),
+                Value<bool> isAvailable = const Value.absent(),
+                Value<String?> priceLabel = const Value.absent(),
+                Value<int?> displayOrder = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CoinPackagesCompanion.insert(
                 id: id,
@@ -4826,6 +5050,9 @@ class $$CoinPackagesTableTableManager
                 coinAmount: coinAmount,
                 description: description,
                 isHighlighted: isHighlighted,
+                isAvailable: isAvailable,
+                priceLabel: priceLabel,
+                displayOrder: displayOrder,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

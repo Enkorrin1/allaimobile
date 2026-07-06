@@ -7,12 +7,16 @@ class ErrorState extends StatelessWidget {
     required this.title,
     required this.description,
     this.onRetry,
+    this.actionLabel = 'Повторить',
+    this.actionIcon = Icons.refresh,
     super.key,
   });
 
   final String title;
   final String description;
   final VoidCallback? onRetry;
+  final String actionLabel;
+  final IconData actionIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -42,8 +46,8 @@ class ErrorState extends StatelessWidget {
             if (onRetry != null) ...[
               const SizedBox(height: 20),
               AppButton(
-                label: 'Повторить',
-                icon: Icons.refresh,
+                label: actionLabel,
+                icon: actionIcon,
                 onPressed: onRetry,
               ),
             ],

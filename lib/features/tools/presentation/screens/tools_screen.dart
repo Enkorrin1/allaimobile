@@ -25,6 +25,7 @@ class ToolsScreen extends ConsumerStatefulWidget {
 class _ToolsScreenState extends ConsumerState<ToolsScreen> {
   final _searchController = TextEditingController();
   String _query = '';
+  AiModelCategory? _selectedCategory;
 
   @override
   void dispose() {
@@ -61,7 +62,9 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
 
             final query = _query.trim().toLowerCase();
             final models = _filterModels(catalog.models, query);
-            final templates = _filterTemplates(catalog.templates, query);
+            final templates = _filterTemplates(catalog, query);
+            final hasActiveFilters =
+                query.isNotEmpty || _selectedCategory != null;
 
             return ListView(
               padding: const EdgeInsets.all(16),
@@ -108,12 +111,27 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
+                    ChoiceChip(
+                      label: const Text('Все'),
+                      selected: _selectedCategory == null,
+                      onSelected: (_) =>
+                          setState(() => _selectedCategory = null),
+                    ),
                     for (final mode in catalog.modes)
-                      StatusChip(
-                        label: mode.isEnabled
-                            ? mode.title
-                            : '${mode.title} скоро',
-                        icon: modelCategoryIcon(mode.category),
+                      ChoiceChip(
+                        avatar: Icon(
+                          modelCategoryIcon(mode.category),
+                          size: 18,
+                        ),
+                        label: Text(
+                          mode.isEnabled ? mode.title : '${mode.title} скоро',
+                        ),
+                        selected: _selectedCategory == mode.category,
+                        onSelected: mode.isEnabled
+                            ? (_) => setState(
+                                () => _selectedCategory = mode.category,
+                              )
+                            : null,
                       ),
                   ],
                 ),
@@ -121,11 +139,14 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                 const SectionHeader(title: 'Модели и инструменты'),
                 const SizedBox(height: 8),
                 if (models.isEmpty)
-                  const AppCard(
+                  AppCard(
                     child: ErrorState(
                       title: 'Ничего не найдено',
                       description:
                           'Попробуйте другой запрос или сбросьте поиск.',
+                      onRetry: hasActiveFilters ? _resetSearchAndFilters : null,
+                      actionLabel: 'Сбросить фильтры',
+                      actionIcon: Icons.filter_alt_off_outlined,
                     ),
                   )
                 else
@@ -150,11 +171,14 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                 const SectionHeader(title: 'Шаблоны'),
                 const SizedBox(height: 8),
                 if (templates.isEmpty)
-                  const AppCard(
+                  AppCard(
                     child: ErrorState(
                       title: 'Шаблоны не найдены',
                       description:
                           'Попробуйте другой запрос или откройте все инструменты.',
+                      onRetry: hasActiveFilters ? _resetSearchAndFilters : null,
+                      actionLabel: 'Сбросить фильтры',
+                      actionIcon: Icons.filter_alt_off_outlined,
                     ),
                   )
                 else
@@ -189,20 +213,36 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
   }
 
   List<AiModel> _filterModels(List<AiModel> models, String query) {
-    if (query.isEmpty) return models;
     return models.where((model) {
+      if (_selectedCategory != null && model.category != _selectedCategory) {
+        return false;
+      }
+      if (query.isEmpty) return true;
       return model.name.toLowerCase().contains(query) ||
           model.description.toLowerCase().contains(query) ||
           modelCategoryLabel(model.category).toLowerCase().contains(query);
     }).toList();
   }
 
-  List<Template> _filterTemplates(List<Template> templates, String query) {
-    if (query.isEmpty) return templates;
-    return templates.where((template) {
+  List<Template> _filterTemplates(CatalogResponse catalog, String query) {
+    final modelsById = {for (final model in catalog.models) model.id: model};
+    return catalog.templates.where((template) {
+      final model = modelsById[template.defaultModelId];
+      if (_selectedCategory != null && model?.category != _selectedCategory) {
+        return false;
+      }
+      if (query.isEmpty) return true;
       return template.title.toLowerCase().contains(query) ||
           template.description.toLowerCase().contains(query) ||
           templateBadge(template).toLowerCase().contains(query);
     }).toList();
+  }
+
+  void _resetSearchAndFilters() {
+    _searchController.clear();
+    setState(() {
+      _query = '';
+      _selectedCategory = null;
+    });
   }
 }

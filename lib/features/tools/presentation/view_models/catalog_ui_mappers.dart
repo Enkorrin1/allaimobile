@@ -46,7 +46,7 @@ Color templateColor(TemplateCategory category) => switch (category) {
 };
 
 String templateBadge(Template template) {
-  return template.id == 'cinema' ? 'Demo' : 'P0';
+  return template.id == 'cinema' ? 'Пример' : 'Основной';
 }
 
 String modelAvailabilityLabel(AiModel model) {

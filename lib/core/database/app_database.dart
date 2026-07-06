@@ -83,6 +83,9 @@ class CoinPackages extends Table {
   TextColumn get description => text()();
   BoolColumn get isHighlighted =>
       boolean().withDefault(const Constant(false))();
+  BoolColumn get isAvailable => boolean().withDefault(const Constant(true))();
+  TextColumn get priceLabel => text().nullable()();
+  IntColumn get displayOrder => integer().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -130,11 +133,19 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
-  MigrationStrategy get migration =>
-      MigrationStrategy(onCreate: (migrator) => migrator.createAll());
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (migrator) => migrator.createAll(),
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        await migrator.addColumn(coinPackages, coinPackages.isAvailable);
+        await migrator.addColumn(coinPackages, coinPackages.priceLabel);
+        await migrator.addColumn(coinPackages, coinPackages.displayOrder);
+      }
+    },
+  );
 
   Future<String?> readMetadata(String key) async {
     final row = await (select(
@@ -289,10 +300,8 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<List<Map<String, dynamic>>> readCoinPackages() async {
-    final rows = await (select(
-      coinPackages,
-    )..orderBy([(table) => OrderingTerm.asc(table.coinAmount)])).get();
-    return rows
+    final rows = await select(coinPackages).get();
+    final packages = rows
         .map(
           (row) => {
             'id': row.id,
@@ -300,9 +309,21 @@ class AppDatabase extends _$AppDatabase {
             'coinAmount': row.coinAmount,
             'description': row.description,
             'isHighlighted': row.isHighlighted,
+            'isAvailable': row.isAvailable,
+            if (row.priceLabel != null) 'priceLabel': row.priceLabel,
+            if (row.displayOrder != null) 'displayOrder': row.displayOrder,
           },
         )
         .toList();
+    packages.sort((a, b) {
+      final orderA = a['displayOrder'] as int?;
+      final orderB = b['displayOrder'] as int?;
+      if (orderA != null && orderB != null) return orderA.compareTo(orderB);
+      if (orderA != null) return -1;
+      if (orderB != null) return 1;
+      return (a['coinAmount'] as int).compareTo(b['coinAmount'] as int);
+    });
+    return packages;
   }
 
   Future<void> writeCoinPackage(Map<String, dynamic> packageJson) async {
@@ -313,8 +334,22 @@ class AppDatabase extends _$AppDatabase {
         coinAmount: packageJson['coinAmount'] as int,
         description: packageJson['description'] as String,
         isHighlighted: Value(packageJson['isHighlighted'] as bool? ?? false),
+        isAvailable: Value(packageJson['isAvailable'] as bool? ?? true),
+        priceLabel: Value(packageJson['priceLabel'] as String?),
+        displayOrder: Value(packageJson['displayOrder'] as int?),
       ),
     );
+  }
+
+  Future<void> replaceCoinPackages(
+    List<Map<String, dynamic>> packagesJson,
+  ) async {
+    await transaction(() async {
+      await delete(coinPackages).go();
+      for (final packageJson in packagesJson) {
+        await writeCoinPackage(packageJson);
+      }
+    });
   }
 
   Future<List<Map<String, dynamic>>> readCoinTransactions() async {

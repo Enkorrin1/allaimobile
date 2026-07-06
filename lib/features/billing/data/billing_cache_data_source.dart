@@ -31,9 +31,7 @@ class BillingCacheDataSource {
 
   Future<void> writePackages(List<Map<String, dynamic>> packagesJson) async {
     final packages = sanitizePublicPackagesJson(packagesJson);
-    for (final package in packages) {
-      await _database.writeCoinPackage(package);
-    }
+    await _database.replaceCoinPackages(packages);
   }
 
   Future<List<Map<String, dynamic>>> readTransactions() {

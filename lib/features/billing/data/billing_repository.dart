@@ -74,7 +74,7 @@ class MockBillingRepository implements BillingRepository {
       );
       await _cache.writePackages(packagesJson);
       return BillingRepositoryResult(
-        data: packagesJson.map(CoinPackage.fromJson).toList(),
+        data: _sortPackages(packagesJson.map(CoinPackage.fromJson).toList()),
         isFromCache: false,
       );
     } on Object catch (error) {
@@ -125,7 +125,7 @@ class MockBillingRepository implements BillingRepository {
     if (cached.isEmpty) return null;
     final sanitized = sanitizePublicPackagesJson(cached);
     return BillingRepositoryResult(
-      data: sanitized.map(CoinPackage.fromJson).toList(),
+      data: _sortPackages(sanitized.map(CoinPackage.fromJson).toList()),
       isFromCache: true,
     );
   }
@@ -158,6 +158,18 @@ class MockBillingRepository implements BillingRepository {
       _messageForCode(fallbackCode),
     );
   }
+}
+
+List<CoinPackage> _sortPackages(List<CoinPackage> packages) {
+  packages.sort((a, b) {
+    final orderA = a.displayOrder;
+    final orderB = b.displayOrder;
+    if (orderA != null && orderB != null) return orderA.compareTo(orderB);
+    if (orderA != null) return -1;
+    if (orderB != null) return 1;
+    return a.coinAmount.compareTo(b.coinAmount);
+  });
+  return packages;
 }
 
 class BillingRepositoryResult<T> {

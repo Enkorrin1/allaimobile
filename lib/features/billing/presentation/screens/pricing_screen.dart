@@ -59,7 +59,6 @@ class PricingScreen extends ConsumerWidget {
                       'Баланс: ${formatCoins(balance.coinBalance)} койнов',
                   reserveCopy:
                       'Доступно сейчас: ${formatCoins(balance.availableCoins)} койнов. Зарезервировано: ${formatCoins(balance.reservedCoins)}.',
-                  warning: insufficientCoinsCopy,
                 ),
                 const SizedBox(height: 22),
                 const SectionHeader(title: 'Пакеты'),
@@ -120,9 +119,17 @@ class PricingScreen extends ConsumerWidget {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${formatCoins(package.coinAmount)} койнов',
+                                        package.priceLabel ??
+                                            '${formatCoins(package.coinAmount)} койнов',
                                         style: theme.textTheme.labelLarge,
                                       ),
+                                      if (!package.isAvailable) ...[
+                                        const SizedBox(height: 6),
+                                        const StatusChip(
+                                          label: 'Недоступно',
+                                          icon: Icons.lock_outline,
+                                        ),
+                                      ],
                                       const SizedBox(height: 6),
                                       Text(
                                         package.description,
@@ -161,48 +168,60 @@ class PricingScreen extends ConsumerWidget {
                     description:
                         'История операций временно недоступна. Попробуйте позже.',
                   ),
-                  data: (transactionsState) => Column(
-                    children: [
-                      for (final transaction in transactionsState.data) ...[
-                        AppCard(
-                          child: Row(
-                            children: [
-                              const Icon(Icons.receipt_long_outlined),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      transaction.title,
-                                      style: theme.textTheme.titleMedium,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      formatDateLabel(transaction.createdAt),
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: theme
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                transaction.amount > 0
-                                    ? '+${formatCoins(transaction.amount)}'
-                                    : '-${formatCoins(transaction.amount.abs())}',
-                                style: theme.textTheme.labelLarge,
-                              ),
-                            ],
-                          ),
+                  data: (transactionsState) {
+                    if (transactionsState.data.isEmpty) {
+                      return const AppCard(
+                        child: ErrorState(
+                          title: 'Операций пока нет',
+                          description:
+                              'История появится после первых генераций или пополнений.',
                         ),
-                        const SizedBox(height: 8),
+                      );
+                    }
+                    return Column(
+                      children: [
+                        for (final transaction in transactionsState.data) ...[
+                          AppCard(
+                            child: Row(
+                              children: [
+                                const Icon(Icons.receipt_long_outlined),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        transaction.title,
+                                        style: theme.textTheme.titleMedium,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        formatDateLabel(transaction.createdAt),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Text(
+                                  transaction.amount > 0
+                                      ? '+${formatCoins(transaction.amount)}'
+                                      : '-${formatCoins(transaction.amount.abs())}',
+                                  style: theme.textTheme.labelLarge,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
                       ],
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ],
             );

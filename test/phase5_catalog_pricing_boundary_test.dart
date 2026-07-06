@@ -105,6 +105,74 @@ void main() {
       firstPackages.data.map((package) => package.id),
     );
   });
+
+  test(
+    'billing cache preserves package metadata and replaces stale packages',
+    () async {
+      final database = memoryDatabase();
+      final cache = BillingCacheDataSource(database);
+      await cache.writePackages([
+        {
+          'id': 'stale',
+          'name': 'Old package',
+          'coinAmount': 100,
+          'description': 'Should disappear',
+          'isHighlighted': false,
+          'isAvailable': true,
+          'displayOrder': 99,
+        },
+      ]);
+      final repository = MockBillingRepository(
+        const _StaticBillingApiDataSource(
+          packages: [
+            {
+              'id': 'starter',
+              'name': 'Starter',
+              'coinAmount': 200,
+              'description': 'Small top-up',
+              'isHighlighted': false,
+              'isAvailable': false,
+              'priceLabel': 'Будет доступно позже',
+              'displayOrder': 2,
+            },
+            {
+              'id': 'pro',
+              'name': 'Pro',
+              'coinAmount': 1200,
+              'description': 'Main package',
+              'isHighlighted': true,
+              'isAvailable': true,
+              'priceLabel': 'Покупки позже',
+              'displayOrder': 1,
+            },
+          ],
+        ),
+        cache,
+      );
+
+      final freshPackages = await repository.getPackagesState(
+        forceRefresh: true,
+      );
+      final restoredRepository = MockBillingRepository(
+        const DisabledLiveBillingApiDataSource(),
+        cache,
+      );
+      final restoredPackages = await restoredRepository.getPackagesState();
+
+      expect(freshPackages.data.map((package) => package.id), [
+        'pro',
+        'starter',
+      ]);
+      expect(restoredPackages.isFromCache, isTrue);
+      expect(restoredPackages.data.map((package) => package.id), [
+        'pro',
+        'starter',
+      ]);
+      expect(restoredPackages.data.first.priceLabel, 'Покупки позже');
+      expect(restoredPackages.data.last.isAvailable, isFalse);
+      expect(restoredPackages.data.last.displayOrder, 2);
+    },
+  );
 }
 
 class _StaticCatalogApiDataSource implements CatalogApiDataSource {
@@ -115,6 +183,33 @@ class _StaticCatalogApiDataSource implements CatalogApiDataSource {
   @override
   Future<Map<String, dynamic>> fetchCatalog() async {
     return _catalog;
+  }
+}
+
+class _StaticBillingApiDataSource implements BillingApiDataSource {
+  const _StaticBillingApiDataSource({required this.packages});
+
+  final List<Map<String, dynamic>> packages;
+
+  @override
+  Future<Map<String, dynamic>> fetchBalance() async {
+    return {
+      'userId': 'demo-user',
+      'coinBalance': 1000,
+      'reservedCoins': 0,
+      'availableCoins': 1000,
+      'updatedAt': '2026-07-03T09:00:00.000Z',
+    };
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchPackages() async {
+    return packages;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchTransactions() async {
+    return const [];
   }
 }
 
