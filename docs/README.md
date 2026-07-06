@@ -67,7 +67,9 @@ Use these files as the stable reference before implementation work:
 - `PHASE_7A_HUNK_REVIEW_MANIFEST.md` - hunk-level staging guidance for mixed docs, tests, and shared widgets.
 - `PHASE_7A_IMPLEMENTATION_TASK_QUEUE.md` - post-repo-approval implementation tickets for Phase 7A.
 - `PHASE_7A_IMPLEMENTATION_FILE_PLAN.md` - file-level Phase 7A implementation plan after repo unblock.
+- `PHASE_7A_IMPLEMENTATION_RESULT.md` - implemented Phase 7A UI foundation/auth/shell result and verification notes.
 - `PHASE_7A_POST_IMPLEMENTATION_REVIEW_PLAN.md` - review gates to run after Phase 7A implementation.
+- `PHASE_7A_POST_IMPLEMENTATION_REVIEW_NOTES.md` - collected Phase 7A post-implementation role gates and conditional decision.
 - `PHASE_7B_SIGNED_IN_WORKFLOW_BRIEF.md` - planning-only brief for signed-in workflow visual redesign.
 - `PHASE_7B_ROLE_ASSIGNMENTS.md` - role responsibilities for Phase 7B planning and future reviews.
 - `PHASE_7B_IMPLEMENTATION_TASK_QUEUE.md` - planning-only implementation tickets for Phase 7B signed-in workflow redesign.
