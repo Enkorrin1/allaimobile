@@ -74,12 +74,18 @@ Use these files as the stable reference before implementation work:
 - `PHASE_7B_ROLE_ASSIGNMENTS.md` - role responsibilities for Phase 7B planning and future reviews.
 - `PHASE_7B_IMPLEMENTATION_TASK_QUEUE.md` - planning-only implementation tickets for Phase 7B signed-in workflow redesign.
 - `PHASE_7B_IMPLEMENTATION_FILE_PLAN.md` - file-level Phase 7B implementation plan after Phase 7A/repo gates.
+- `PHASE_7B_IMPLEMENTATION_RESULT.md` - implemented signed-in workflow redesign result, checks, and Android smoke blocker.
 - `PHASE_7B_POST_IMPLEMENTATION_REVIEW_PLAN.md` - review gates to run after future Phase 7B implementation.
+- `PHASE_7B_POST_IMPLEMENTATION_REVIEW_NOTES.md` - collected Phase 7B role review gates and conditional decision.
 - `PHASE_7C_RELEASE_POLISH_BRIEF.md` - planning-only final mobile polish and release-readiness brief.
 - `PHASE_7C_ROLE_ASSIGNMENTS.md` - role responsibilities for Phase 7C release polish planning.
 - `PHASE_7C_IMPLEMENTATION_TASK_QUEUE.md` - planning-only implementation tickets for Phase 7C final polish.
 - `PHASE_7C_IMPLEMENTATION_FILE_PLAN.md` - file-level Phase 7C release polish plan after Phase 7A/7B.
 - `PHASE_7C_POST_IMPLEMENTATION_REVIEW_PLAN.md` - future review gates for Phase 7C final polish.
+- `PHASE_7C_IMPLEMENTATION_RESULT.md` - implemented release polish result, checks, and Android smoke blocker.
+- `PHASE_7C_POST_IMPLEMENTATION_REVIEW_NOTES.md` - collected Phase 7C role review gates and conditional decision.
+- `PHASE_7E_VISUAL_REFERENCE_REDESIGN_RESULT.md` - corrective visual redesign result based on the user-provided AI Video references.
+- `PHASE_7E_POST_IMPLEMENTATION_REVIEW_NOTES.md` - collected Phase 7E role gates, emulator evidence, and remaining repo/device risks.
 - `PHASE_7_REPO_UNBLOCK_TASK_QUEUE.md` - role-reviewed repo unblock plan before Phase 7 app-code.
 - `PHASE_7_REPO_PREFLIGHT_AUDIT.md` - read-only repo snapshot and role review before unblock approval.
 - `PHASE_7_REPO_SPLIT_FILE_MAP.md` - file-by-file future split map for repo unblock.

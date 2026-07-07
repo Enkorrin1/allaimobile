@@ -11,6 +11,7 @@ class AppColors {
   static const line = Color(0xFFD8E0EC);
   static const muted = Color(0xFF667085);
   static const brand = Color(0xFF2454E6);
+  static const neon = Color(0xFFE6FF00);
   static const brandPressed = Color(0xFF183FB8);
   static const brandSoft = Color(0xFFEAF0FF);
   static const mint = Color(0xFF12A87A);
@@ -22,8 +23,8 @@ class AppColors {
   static const plum = Color(0xFF7C3AED);
 
   static const darkInk = Color(0xFFF7F8FA);
-  static const darkSurface = Color(0xFF101318);
-  static const darkPanel = Color(0xFF181D25);
-  static const darkPanelAlt = Color(0xFF20293A);
-  static const darkLine = Color(0xFF303846);
+  static const darkSurface = Color(0xFF000000);
+  static const darkPanel = Color(0xFF111111);
+  static const darkPanelAlt = Color(0xFF1C1C1F);
+  static const darkLine = Color(0xFF2B2B30);
 }

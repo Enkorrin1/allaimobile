@@ -47,13 +47,13 @@ class AppTheme {
   static ThemeData dark() {
     const colorScheme = ColorScheme(
       brightness: Brightness.dark,
-      primary: Color(0xFF9BB5FF),
-      onPrimary: Color(0xFF102A78),
+      primary: AppColors.neon,
+      onPrimary: Colors.black,
       primaryContainer: AppColors.darkPanelAlt,
       onPrimaryContainer: AppColors.darkInk,
-      secondary: Color(0xFF65D6B0),
-      onSecondary: Color(0xFF073A2B),
-      secondaryContainer: Color(0xFF123B32),
+      secondary: AppColors.neon,
+      onSecondary: Colors.black,
+      secondaryContainer: Color(0xFF263000),
       onSecondaryContainer: AppColors.darkInk,
       tertiary: Color(0xFFFFD879),
       onTertiary: Color(0xFF4F3300),
@@ -85,6 +85,7 @@ class AppTheme {
   static ThemeData _base(ColorScheme colorScheme) {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: AppTypography.fontFamily,
       colorScheme: colorScheme,
       appBarTheme: AppBarTheme(
         centerTitle: false,
@@ -94,6 +95,7 @@ class AppTheme {
         foregroundColor: colorScheme.onSurface,
         titleTextStyle: TextStyle(
           color: colorScheme.onSurface,
+          fontFamily: AppTypography.fontFamily,
           fontSize: 18,
           fontWeight: FontWeight.w800,
         ),
@@ -111,10 +113,16 @@ class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
           minimumSize: const Size(48, 52),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: const TextStyle(
+            fontFamily: AppTypography.fontFamily,
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+          ),
+          shape: const StadiumBorder(),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -123,14 +131,22 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           foregroundColor: colorScheme.onSurface,
           side: BorderSide(color: colorScheme.outline),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: const TextStyle(
+            fontFamily: AppTypography.fontFamily,
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+          ),
+          shape: const StadiumBorder(),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           minimumSize: const Size(48, 44),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+          textStyle: const TextStyle(
+            fontFamily: AppTypography.fontFamily,
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+          ),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
@@ -180,6 +196,7 @@ class AppTheme {
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
+            fontFamily: AppTypography.fontFamily,
             fontSize: 11,
             fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
             color: selected

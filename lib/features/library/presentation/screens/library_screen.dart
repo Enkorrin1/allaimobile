@@ -3,14 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
-import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/error_state.dart';
-import '../../../../shared/widgets/generated_asset_preview.dart';
 import '../../../../shared/widgets/loading_state.dart';
-import '../../../../shared/widgets/media_asset_tile.dart';
-import '../../../../shared/widgets/section_header.dart';
-import '../../../../shared/widgets/status_chip.dart';
-import '../../../generation_jobs/domain/generation_job_models.dart';
+import '../../../../shared/widgets/neon_media_card.dart';
 import '../../../tools/presentation/view_models/catalog_ui_mappers.dart';
 import '../../domain/library_history_item.dart';
 import '../providers/library_providers.dart';
@@ -20,154 +15,153 @@ class LibraryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final historyAsync = ref.watch(libraryHistoryProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Библиотека')),
+      backgroundColor: Colors.black,
       body: SafeArea(
+        bottom: false,
         child: historyAsync.when(
-          loading: () => const LoadingState(label: 'Загружаем историю'),
+          loading: () => const LoadingState(label: 'Loading projects'),
           error: (error, stackTrace) => const ErrorState(
-            title: 'История недоступна',
-            description: 'Не удалось прочитать историю генераций.',
+            title: 'Projects are unavailable',
+            description: 'Generation history could not be loaded.',
           ),
-          data: (history) => LayoutBuilder(
-            builder: (context, constraints) {
-              final useList = constraints.maxWidth < 560;
-
-              return CustomScrollView(
-                slivers: [
-                  if (history.isEmpty)
-                    const SliverPadding(
-                      padding: EdgeInsets.fromLTRB(16, 0, 16, 24),
-                      sliver: SliverToBoxAdapter(
-                        child: EmptyState(
-                          icon: Icons.auto_awesome_outlined,
-                          title: 'Пока нет созданных результатов',
-                          description:
-                              'Запустите первую генерацию, и она появится здесь.',
-                        ),
-                      ),
-                    )
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.all(16),
-                      sliver: SliverList.list(
-                        children: [
-                          Text(
-                            'История генераций',
-                            style: theme.textTheme.headlineMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Здесь сохраняются активные, готовые и неудачные генерации с моделью, датой и стоимостью.',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              StatusChip(
-                                label: 'Все',
-                                icon: Icons.all_inclusive,
-                              ),
-                              StatusChip(
-                                label: 'Фото',
-                                icon: Icons.image_outlined,
-                              ),
-                              StatusChip(
-                                label: 'В работе',
-                                icon: Icons.timelapse,
-                              ),
-                              StatusChip(
-                                label: 'Ошибки',
-                                icon: Icons.error_outline,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          const SectionHeader(title: 'Сгенерированные ассеты'),
-                        ],
-                      ),
-                    ),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                    sliver: useList
-                        ? SliverList.separated(
-                            itemBuilder: (context, index) =>
-                                _HistoryTile(item: history[index]),
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 12),
-                            itemCount: history.length,
-                          )
-                        : SliverGrid(
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 12,
-                                  mainAxisSpacing: 12,
-                                  childAspectRatio: 0.86,
-                                ),
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) =>
-                                  _HistoryTile(item: history[index]),
-                              childCount: history.length,
-                            ),
-                          ),
-                  ),
-                ],
+          data: (history) {
+            if (history.isEmpty) {
+              return _EmptyProjects(
+                onCreate: () => context.go(AppRoutes.create),
               );
-            },
-          ),
+            }
+
+            return CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                'Projects',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 44,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1,
+                                ),
+                              ),
+                            ),
+                            NeonPillButton(
+                              label: 'New',
+                              icon: Icons.add,
+                              expand: false,
+                              height: 46,
+                              onPressed: () => context.go(AppRoutes.create),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          '${history.length} saved generations',
+                          style: const TextStyle(
+                            color: allAiMuted,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 126),
+                  sliver: SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 18,
+                          mainAxisSpacing: 18,
+                          childAspectRatio: 0.72,
+                        ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => _ProjectCard(item: history[index]),
+                      childCount: history.length,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 }
 
-class _HistoryTile extends StatelessWidget {
-  const _HistoryTile({required this.item});
+class _ProjectCard extends StatelessWidget {
+  const _ProjectCard({required this.item});
 
   final LibraryHistoryItem item;
 
   @override
   Widget build(BuildContext context) {
     final asset = item.outputAsset;
-    final isActive = !item.job.isTerminal;
+    final imageUrl =
+        asset?.thumbnailUrl ??
+        asset?.url ??
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=82';
     final targetId = asset?.id ?? item.job.id;
 
-    return MediaAssetTile(
+    return NeonMediaCard(
       title: item.template?.title ?? item.model.name,
-      kind: asset == null
-          ? modelCategoryLabel(item.model.category)
-          : assetKindLabel(asset.type),
-      status: jobStatusLabel(item.job.status),
       subtitle:
-          '${formatDateLabel(item.job.updatedAt)} • ${item.job.costCoins} койнов${isActive ? ' • ${generationStatusProgress(item.job)}' : ''}',
-      icon: asset == null
-          ? modelCategoryIcon(item.model.category)
-          : assetIcon(asset.type),
-      accentColor: modelCategoryColor(item.model.category),
-      preview: asset == null
-          ? null
-          : GeneratedAssetPreview(
-              url: asset.url,
-              thumbnailUrl: asset.thumbnailUrl,
-              isVideo: asset.type == AssetType.video,
-              fallbackIcon: assetIcon(asset.type),
-              accentColor: modelCategoryColor(item.model.category),
-            ),
+          '${jobStatusLabel(item.job.status)} · ${formatDateLabel(item.job.updatedAt)}',
+      imageUrl: imageUrl,
+      width: double.infinity,
+      height: double.infinity,
+      borderRadius: 18,
       onTap: () => context.push(AppRoutes.result(targetId)),
     );
   }
 }
 
-String generationStatusProgress(GenerationJob job) {
-  final progress = job.progress;
-  if (progress == null) return jobStatusLabel(job.status);
-  return '${(progress * 100).round()}%';
+class _EmptyProjects extends StatelessWidget {
+  const _EmptyProjects({required this.onCreate});
+
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(30, 18, 30, 126),
+      children: [
+        const Text(
+          'Projects',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 44,
+            fontWeight: FontWeight.w900,
+            height: 1,
+          ),
+        ),
+        const SizedBox(height: 32),
+        const NeonMediaCard(
+          title: 'Create Your Magic',
+          subtitle: 'Your AI videos and images will appear here',
+          imageUrl:
+              'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1000&q=82',
+          width: double.infinity,
+          height: 520,
+          borderRadius: 28,
+          centerContent: true,
+        ),
+        const SizedBox(height: 28),
+        NeonPillButton(label: 'Create first project', onPressed: onCreate),
+      ],
+    );
+  }
 }

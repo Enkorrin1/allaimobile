@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 class AppTypography {
   const AppTypography._();
 
+  static const fontFamily = 'Manrope';
+
   static TextTheme textTheme(Color textColor) {
     return TextTheme(
       headlineMedium: TextStyle(
@@ -44,6 +46,6 @@ class AppTypography {
         fontWeight: FontWeight.w700,
         height: 1.15,
       ),
-    );
+    ).apply(fontFamily: fontFamily);
   }
 }

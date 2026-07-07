@@ -48,30 +48,34 @@ class ToolDetailScreen extends ConsumerWidget {
             final templates = catalog.templates
                 .where((template) => template.defaultModelId == model.id)
                 .toList();
+            final accentColor = modelCategoryColor(model.category);
 
             return ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               children: [
                 if (state.isFromCache) ...[
                   const StatusChip(
-                    label: 'Показываем сохраненные данные',
+                    label: 'Показываем сохранённые данные',
                     icon: Icons.offline_pin_outlined,
                   ),
                   const SizedBox(height: 12),
                 ],
                 AppCard(
+                  borderColor: accentColor.withValues(alpha: 0.28),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundColor: modelCategoryColor(
-                          model.category,
-                        ).withValues(alpha: 0.12),
-                        foregroundColor: modelCategoryColor(model.category),
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: accentColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         child: Icon(
                           modelCategoryIcon(model.category),
-                          size: 30,
+                          size: 32,
+                          color: accentColor,
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -143,6 +147,7 @@ class ToolDetailScreen extends ConsumerWidget {
                       ? 'Использовать при создании'
                       : 'Модель пока недоступна',
                   icon: Icons.auto_awesome,
+                  fullWidth: true,
                   onPressed: model.isAvailable
                       ? () => context.go(AppRoutes.create)
                       : null,

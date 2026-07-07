@@ -17,7 +17,7 @@ import 'package:allai_mobile/features/generation_jobs/presentation/providers/gen
 import 'package:allai_mobile/features/tools/data/catalog_api_data_source.dart';
 import 'package:allai_mobile/features/tools/presentation/providers/catalog_providers.dart';
 import 'package:allai_mobile/shared/widgets/generated_asset_preview.dart';
-import 'package:allai_mobile/shared/widgets/media_asset_tile.dart';
+import 'package:allai_mobile/shared/widgets/neon_media_card.dart';
 import 'package:allai_mobile/shared/widgets/template_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -117,9 +117,9 @@ void main() {
   testWidgets('fresh signed-out app opens Welcome, not shell', (tester) async {
     await pumpAllAi(tester, signedIn: false);
 
-    expect(find.text('Создавайте фото и видео с ИИ'), findsOneWidget);
-    expect(find.text('Войти'), findsOneWidget);
-    expect(find.text('Главная'), findsNothing);
+    expect(find.text('Image to Video'), findsOneWidget);
+    expect(find.text('I already have an account'), findsOneWidget);
+    expect(find.text('Home'), findsNothing);
   });
 
   testWidgets('signed-out protected initial route redirects to Welcome', (
@@ -131,7 +131,7 @@ void main() {
       initialLocation: AppRoutes.profile,
     );
 
-    expect(find.text('Создавайте фото и видео с ИИ'), findsOneWidget);
+    expect(find.text('Image to Video'), findsOneWidget);
     expect(find.text('Профиль'), findsNothing);
   });
 
@@ -140,7 +140,7 @@ void main() {
   ) async {
     final harness = await pumpAllAi(tester, signedIn: false);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Войти'));
+    await tester.tap(find.text('I already have an account'));
     await pumpRoute(tester);
     await tester.enterText(
       find.byType(TextField).at(1),
@@ -149,7 +149,7 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Войти'));
     await pumpRoute(tester);
 
-    expect(find.text('Главная'), findsOneWidget);
+    expect(find.text('Videos'), findsOneWidget);
     expect(await harness.storage.read(AuthSessionStore.sessionKey), isNotNull);
   });
 
@@ -158,7 +158,7 @@ void main() {
   ) async {
     final harness = await pumpAllAi(tester, signedIn: false);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Войти'));
+    await tester.tap(find.text('I already have an account'));
     await pumpRoute(tester);
     await tester.enterText(find.byType(TextField).at(1), 'wrong-password');
     await tester.tap(find.widgetWithText(FilledButton, 'Войти'));
@@ -173,7 +173,7 @@ void main() {
   ) async {
     final harness = await pumpAllAi(tester, signedIn: false);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Войти'));
+    await tester.tap(find.text('I already have an account'));
     await pumpRoute(tester);
     await tester.enterText(find.byType(TextField).at(0), '');
     await tester.enterText(find.byType(TextField).at(1), '');
@@ -198,7 +198,7 @@ void main() {
   ) async {
     await pumpAllAi(tester, signedIn: false);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Войти'));
+    await tester.tap(find.text('I already have an account'));
     await pumpRoute(tester);
     await tester.tap(find.widgetWithText(OutlinedButton, 'Забыли пароль?'));
     await pumpRoute(tester);
@@ -224,7 +224,7 @@ void main() {
   testWidgets('registration legal links open placeholder', (tester) async {
     await pumpAllAi(tester, signedIn: false);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Создать аккаунт'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
     await pumpRoute(tester);
     await scrollUntilVisible(tester, find.text('условия использования'));
     await tester.tap(find.text('условия использования'));
@@ -246,7 +246,7 @@ void main() {
   ) async {
     await pumpAllAi(tester, signedIn: false);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Создать аккаунт'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
     await pumpRoute(tester);
     await tester.enterText(find.byType(TextField).at(0), 'new@example.com');
     await tester.enterText(find.byType(TextField).at(1), 'Новый креатор');
@@ -276,18 +276,16 @@ void main() {
 
     await tester.tap(submit);
     await pumpRoute(tester);
-    expect(find.text('Главная'), findsOneWidget);
+    expect(find.text('Videos'), findsOneWidget);
   });
 
   testWidgets('signed-in restore renders main navigation', (tester) async {
     await pumpAllAi(tester);
 
-    expect(find.text('AllAI'), findsOneWidget);
-    expect(find.text('Главная'), findsOneWidget);
-    expect(find.text('Создать'), findsOneWidget);
-    expect(find.text('Библиотека'), findsOneWidget);
-    expect(find.text('Студия'), findsOneWidget);
-    expect(find.text('Профиль'), findsOneWidget);
+    expect(find.text('Videos'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.byIcon(Icons.add), findsOneWidget);
+    expect(find.text('Projects'), findsOneWidget);
     expect(find.text('1 250'), findsOneWidget);
   });
 
@@ -296,7 +294,7 @@ void main() {
   ) async {
     await pumpAllAi(tester);
 
-    await tester.tap(find.text('Создать'));
+    await tester.tap(find.byIcon(Icons.add).last);
     await pumpRoute(tester);
 
     expect(find.text('Новая генерация'), findsOneWidget);
@@ -312,7 +310,7 @@ void main() {
   ) async {
     await pumpAllAi(tester, generationPollingDelays: const [Duration.zero]);
 
-    await tester.tap(find.text('Создать'));
+    await tester.tap(find.byIcon(Icons.add).last);
     await pumpRoute(tester);
 
     await scrollUntilVisible(
@@ -360,7 +358,7 @@ void main() {
   testWidgets('Failed image job keeps retry copy visible', (tester) async {
     await pumpAllAi(tester, generationPollingDelays: const [Duration.zero]);
 
-    await tester.tap(find.text('Создать'));
+    await tester.tap(find.byIcon(Icons.add).last);
     await pumpRoute(tester);
     await tester.enterText(find.byType(TextField).first, 'fail this image job');
     await pumpRoute(tester);
@@ -378,8 +376,7 @@ void main() {
   testWidgets('Tools and template detail routes render', (tester) async {
     await pumpAllAi(tester);
 
-    await tester.tap(find.text('Инструменты'));
-    await pumpRoute(tester);
+    await pumpAllAi(tester, initialLocation: AppRoutes.tools);
 
     expect(find.text('Каталог инструментов'), findsOneWidget);
     expect(find.text('AllAI Photo Studio'), findsOneWidget);
@@ -415,7 +412,7 @@ void main() {
   testWidgets('Create can run mock job and open result viewer', (tester) async {
     await pumpAllAi(tester, generationPollingDelays: const [Duration.zero]);
 
-    await tester.tap(find.text('Создать'));
+    await tester.tap(find.byIcon(Icons.add).last);
     await pumpRoute(tester);
 
     await tester.enterText(
@@ -487,13 +484,10 @@ void main() {
     await tester.tap(find.text('1 250'));
     await pumpRoute(tester);
 
-    expect(find.text('Баланс и пакеты'), findsOneWidget);
-    expect(find.text('Пакеты'), findsOneWidget);
-    await scrollUntilVisible(
-      tester,
-      find.text('Покупки будут подключены позже'),
-    );
-    expect(find.text('Покупки будут подключены позже'), findsOneWidget);
+    await scrollUntilVisible(tester, find.text('Start Creating Now'));
+    expect(find.text('Start Creating Now'), findsOneWidget);
+    expect(find.text('Continue'), findsOneWidget);
+    expect(find.textContaining('Demo mode'), findsOneWidget);
   });
 
   testWidgets('Tools route shows user-facing catalog error', (tester) async {
@@ -515,22 +509,26 @@ void main() {
       billingApiDataSource: const _EmptyPackagesBillingApiDataSource(),
     );
 
-    expect(find.text('Баланс и пакеты'), findsOneWidget);
-    await scrollUntilVisible(tester, find.text('Пакеты пока не добавлены'));
-    expect(find.text('Пакеты пока не добавлены'), findsOneWidget);
+    await scrollUntilVisible(tester, find.text('Start Creating Now'));
+    expect(find.text('Start Creating Now'), findsOneWidget);
+    await scrollUntilVisible(
+      tester,
+      find.text('Coin packages will appear here after billing setup.'),
+    );
+    expect(
+      find.text('Coin packages will appear here after billing setup.'),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('Library and Studio tabs render mock runtime content', (
-    tester,
-  ) async {
-    await pumpAllAi(tester);
+  testWidgets('Projects tab renders mock runtime content', (tester) async {
+    await pumpAllAi(tester, initialLocation: AppRoutes.library);
+    expect(find.text('Projects'), findsWidgets);
+    expect(find.text('Create Your Magic'), findsOneWidget);
+  });
 
-    await tester.tap(find.text('Библиотека'));
-    await pumpRoute(tester);
-    expect(find.text('Пока нет созданных результатов'), findsOneWidget);
-
-    await tester.tap(find.text('Студия'));
-    await pumpRoute(tester);
+  testWidgets('Studio route renders mock runtime content', (tester) async {
+    await pumpAllAi(tester, initialLocation: AppRoutes.studio);
     expect(find.text('Студия соцконтента'), findsOneWidget);
     await scrollUntilVisible(tester, find.text('Создать ассет'));
     expect(find.text('Создать ассет'), findsOneWidget);
@@ -538,7 +536,7 @@ void main() {
 
   testWidgets('Back from result returns to Library tab', (tester) async {
     await pumpAllAi(tester, generationPollingDelays: const [Duration.zero]);
-    await tester.tap(find.byIcon(Icons.auto_awesome_outlined).last);
+    await tester.tap(find.byIcon(Icons.add).last);
     await pumpRoute(tester);
     await tester.enterText(
       find.byType(TextField).first,
@@ -549,31 +547,29 @@ void main() {
     await tester.binding.handlePopRoute();
     await pumpRoute(tester);
 
-    await tester.tap(find.text('Библиотека'));
+    await tester.tap(find.text('Projects').last);
     await pumpRoute(tester);
 
-    final historyItem = find.widgetWithText(MediaAssetTile, 'Unboxing');
+    final historyItem = find.widgetWithText(NeonMediaCard, 'Unboxing');
     await tapVisible(tester, historyItem);
 
     expect(find.text('Результат'), findsOneWidget);
     await tester.binding.handlePopRoute();
     await pumpRoute(tester);
 
-    expect(find.text('Библиотека'), findsWidgets);
+    expect(find.text('Projects'), findsWidgets);
     expect(find.text('Unboxing'), findsOneWidget);
   });
 
   testWidgets('Back from pricing returns to Profile tab', (tester) async {
-    await pumpAllAi(tester);
-
-    await tester.tap(find.text('Профиль'));
-    await pumpRoute(tester);
+    await pumpAllAi(tester, initialLocation: AppRoutes.profile);
     expect(find.text('Демо-креатор'), findsOneWidget);
 
     await tester.tap(find.text('Баланс: 1 250 койнов'));
     await pumpRoute(tester);
 
-    expect(find.text('Баланс и пакеты'), findsOneWidget);
+    await scrollUntilVisible(tester, find.text('Start Creating Now'));
+    expect(find.text('Start Creating Now'), findsOneWidget);
     await tester.binding.handlePopRoute();
     await pumpRoute(tester);
 
@@ -584,10 +580,7 @@ void main() {
   testWidgets('logout clears session and back does not reveal shell', (
     tester,
   ) async {
-    final harness = await pumpAllAi(tester);
-
-    await tester.tap(find.text('Профиль'));
-    await pumpRoute(tester);
+    final harness = await pumpAllAi(tester, initialLocation: AppRoutes.profile);
     await scrollUntilVisible(
       tester,
       find.widgetWithText(OutlinedButton, 'Выйти'),
@@ -598,12 +591,12 @@ void main() {
     await pumpRoute(tester);
 
     expect(await harness.storage.read(AuthSessionStore.sessionKey), isNull);
-    expect(find.text('Создавайте фото и видео с ИИ'), findsOneWidget);
+    expect(find.text('Image to Video'), findsOneWidget);
 
     await tester.binding.handlePopRoute();
     await pumpRoute(tester);
-    expect(find.text('Создавайте фото и видео с ИИ'), findsOneWidget);
-    expect(find.text('Главная'), findsNothing);
+    expect(find.text('Image to Video'), findsOneWidget);
+    expect(find.text('Home'), findsNothing);
   });
 }
 

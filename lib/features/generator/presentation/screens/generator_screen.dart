@@ -129,6 +129,10 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
               prompt: _prompt,
             );
             final canSubmit = !jobState.isLoading && disabledReason == null;
+            final aspectRatio =
+                selectedTemplate?.targetAspectRatio ??
+                selectedModel?.capabilities.aspectRatios?.first ??
+                '9:16';
             final modeOptions = imageModes
                 .map(
                   (mode) => GenerationModeOption(
@@ -144,7 +148,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: EdgeInsets.fromLTRB(
                 16,
-                16,
+                12,
                 16,
                 24 + MediaQuery.viewInsetsOf(context).bottom,
               ),
@@ -156,39 +160,22 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                   ),
                   const SizedBox(height: 12),
                 ],
-                Text('Новая генерация', style: theme.textTheme.headlineMedium),
-                const SizedBox(height: 8),
-                Text(
-                  'Опишите изображение, проверьте стоимость и запустите задачу. Референс-загрузка появится в следующем обновлении.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                _CreateHeader(
+                  availableCoins: availableCoins,
+                  selectedModelName: selectedModel?.name ?? 'модель недоступна',
+                  selectedTemplateTitle: selectedTemplate?.title,
                 ),
                 const SizedBox(height: 18),
+                const SectionHeader(title: 'Формат'),
+                const SizedBox(height: 8),
                 GenerationModeSelector(
                   options: modeOptions,
                   selectedId: selectedModeId,
                   onSelected: (id) => setState(() => _selectedModeId = id),
                 ),
-                const SizedBox(height: 10),
-                AppCard(
-                  child: Row(
-                    children: [
-                      Icon(
-                        modelCategoryIcon(selectedMode.category),
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          '${selectedMode.title}: ${selectedModel?.name ?? 'модель недоступна'}',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
+                const SectionHeader(title: 'Описание'),
+                const SizedBox(height: 8),
                 AppTextField(
                   label: 'Промпт',
                   hintText:
@@ -198,6 +185,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                   maxLines: 6,
                   textInputAction: TextInputAction.newline,
                   errorText: _promptError,
+                  prefixIcon: const Icon(Icons.edit_outlined),
                   onChanged: (value) {
                     setState(() {
                       _prompt = value;
@@ -205,7 +193,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                     });
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 const UploadPlaceholder(
                   title: 'Референс-изображение',
                   description:
@@ -218,24 +206,23 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                   onActionPressed: () => context.push(AppRoutes.tools),
                 ),
                 const SizedBox(height: 8),
-                for (final model in imageModels.take(2)) ...[
+                if (selectedModel != null)
                   ModelCard(
-                    name: model.name,
-                    category: modelCategoryLabel(model.category),
-                    description: model.description,
-                    costLabel: costLabel(model.cost),
-                    icon: modelCategoryIcon(model.category),
-                    accentColor: modelCategoryColor(model.category),
-                    available: model.isAvailable,
-                    availabilityLabel: modelAvailabilityLabel(model),
-                    availabilityDescription: model.isAvailable
+                    name: selectedModel.name,
+                    category: modelCategoryLabel(selectedModel.category),
+                    description: selectedModel.description,
+                    costLabel: costLabel(selectedModel.cost),
+                    icon: modelCategoryIcon(selectedModel.category),
+                    accentColor: modelCategoryColor(selectedModel.category),
+                    available: selectedModel.isAvailable,
+                    availabilityLabel: modelAvailabilityLabel(selectedModel),
+                    availabilityDescription: selectedModel.isAvailable
                         ? null
-                        : modelAvailabilityDescription(model),
-                    onTap: () => context.push(AppRoutes.toolDetail(model.id)),
+                        : modelAvailabilityDescription(selectedModel),
+                    onTap: () =>
+                        context.push(AppRoutes.toolDetail(selectedModel.id)),
                   ),
-                  const SizedBox(height: 12),
-                ],
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
                 const SectionHeader(title: 'Стартовый шаблон'),
                 const SizedBox(height: 8),
                 if (selectedTemplates.isEmpty)
@@ -265,11 +252,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    StatusChip(
-                      label:
-                          'Формат ${selectedTemplate?.targetAspectRatio ?? selectedModel?.capabilities.aspectRatios?.first ?? '9:16'}',
-                      icon: Icons.tune,
-                    ),
+                    StatusChip(label: 'Формат $aspectRatio', icon: Icons.tune),
                     const StatusChip(
                       label: 'По описанию',
                       icon: Icons.edit_outlined,
@@ -317,6 +300,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                       ? 'Создаём задачу'
                       : 'Запустить генерацию',
                   icon: Icons.auto_awesome,
+                  fullWidth: true,
                   onPressed: canSubmit
                       ? () async {
                           final prompt = _promptController.text.trim();
@@ -334,15 +318,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                                 modelId: selectedModel!.id,
                                 templateId: selectedTemplate?.id,
                                 prompt: prompt,
-                                settings: {
-                                  'aspectRatio':
-                                      selectedTemplate?.targetAspectRatio ??
-                                      selectedModel
-                                          .capabilities
-                                          .aspectRatios
-                                          ?.first ??
-                                      '9:16',
-                                },
+                                settings: {'aspectRatio': aspectRatio},
                               );
                           if (!context.mounted || response == null) return;
                           _openResult(context, response);
@@ -419,6 +395,58 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
   }
 }
 
+class _CreateHeader extends StatelessWidget {
+  const _CreateHeader({
+    required this.availableCoins,
+    required this.selectedModelName,
+    this.selectedTemplateTitle,
+  });
+
+  final int? availableCoins;
+  final String selectedModelName;
+  final String? selectedTemplateTitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return AppCard(
+      color: colorScheme.surface,
+      borderColor: colorScheme.primary.withValues(alpha: 0.24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              StatusChip(
+                label: availableCoins == null
+                    ? 'Доступно: загружаем'
+                    : 'Доступно: ${formatCoins(availableCoins!)}',
+                icon: Icons.toll,
+              ),
+              StatusChip(label: selectedModelName, icon: Icons.image_outlined),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text('Новая генерация', style: theme.textTheme.headlineMedium),
+          const SizedBox(height: 8),
+          Text(
+            selectedTemplateTitle == null
+                ? 'Опишите изображение, проверьте стоимость и запустите задачу.'
+                : 'Шаблон: $selectedTemplateTitle. Описание можно уточнить перед запуском.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _JobStateCard extends StatelessWidget {
   const _JobStateCard({
     required this.state,
@@ -471,6 +499,9 @@ class _JobStateCard extends StatelessWidget {
     final isCompleted = job.status == GenerationJobStatus.completed;
 
     return AppCard(
+      borderColor: isFailed
+          ? theme.colorScheme.error.withValues(alpha: 0.55)
+          : theme.colorScheme.primary.withValues(alpha: 0.28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

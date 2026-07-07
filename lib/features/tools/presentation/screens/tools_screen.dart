@@ -35,7 +35,6 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final catalogAsync = ref.watch(catalogStateProvider);
 
     return Scaffold(
@@ -65,38 +64,27 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
             final templates = _filterTemplates(catalog, query);
             final hasActiveFilters =
                 query.isNotEmpty || _selectedCategory != null;
+            final modelsById = {
+              for (final model in catalog.models) model.id: model,
+            };
 
             return ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               children: [
-                Text(
-                  'Каталог инструментов',
-                  style: theme.textTheme.headlineMedium,
+                _CatalogHeader(
+                  modelCount: catalog.models.length,
+                  templateCount: catalog.templates.length,
+                  fromCache: state.isFromCache || state.refreshError != null,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Выберите модель или готовый сценарий. Стоимость и доступность берутся из каталога.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                if (state.isFromCache || state.refreshError != null) ...[
-                  const SizedBox(height: 12),
-                  StatusChip(
-                    label: state.refreshError == null
-                        ? 'Показываем сохраненные данные'
-                        : 'Показываем сохраненные данные',
-                    icon: Icons.offline_pin_outlined,
-                  ),
-                ],
                 const SizedBox(height: 16),
                 AppTextField(
                   label: 'Поиск',
                   hintText: 'Инструменты, шаблоны, форматы',
                   controller: _searchController,
+                  prefixIcon: const Icon(Icons.search),
                   onChanged: (value) => setState(() => _query = value),
                   suffixIcon: _query.isEmpty
-                      ? const Icon(Icons.search)
+                      ? null
                       : IconButton(
                           tooltip: 'Сбросить поиск',
                           onPressed: () {
@@ -107,36 +95,51 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                         ),
                 ),
                 const SizedBox(height: 14),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    ChoiceChip(
-                      label: const Text('Все'),
-                      selected: _selectedCategory == null,
-                      onSelected: (_) =>
-                          setState(() => _selectedCategory = null),
-                    ),
-                    for (final mode in catalog.modes)
-                      ChoiceChip(
-                        avatar: Icon(
-                          modelCategoryIcon(mode.category),
-                          size: 18,
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: const Text('Все'),
+                          selected: _selectedCategory == null,
+                          onSelected: (_) =>
+                              setState(() => _selectedCategory = null),
                         ),
-                        label: Text(
-                          mode.isEnabled ? mode.title : '${mode.title} скоро',
-                        ),
-                        selected: _selectedCategory == mode.category,
-                        onSelected: mode.isEnabled
-                            ? (_) => setState(
-                                () => _selectedCategory = mode.category,
-                              )
-                            : null,
                       ),
-                  ],
+                      for (final mode in catalog.modes)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            avatar: Icon(
+                              modelCategoryIcon(mode.category),
+                              size: 18,
+                            ),
+                            label: Text(
+                              mode.isEnabled
+                                  ? mode.title
+                                  : '${mode.title} скоро',
+                            ),
+                            selected: _selectedCategory == mode.category,
+                            onSelected: mode.isEnabled
+                                ? (_) => setState(
+                                    () => _selectedCategory = mode.category,
+                                  )
+                                : null,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 22),
-                const SectionHeader(title: 'Модели и инструменты'),
+                SectionHeader(
+                  title: 'Модели и инструменты',
+                  actionLabel: hasActiveFilters ? 'Сбросить' : null,
+                  onActionPressed: hasActiveFilters
+                      ? _resetSearchAndFilters
+                      : null,
+                ),
                 const SizedBox(height: 8),
                 if (models.isEmpty)
                   AppCard(
@@ -188,11 +191,8 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                       badge: templateAvailabilityLabel(template),
                       description: template.description,
                       costLabel: costLabel(
-                        catalog.models
-                            .firstWhere(
-                              (model) => model.id == template.defaultModelId,
-                            )
-                            .cost,
+                        modelsById[template.defaultModelId]?.cost ??
+                            const CoinCost(minCoins: 0),
                       ),
                       icon: templateIcon(template.category),
                       accentColor: templateColor(template.category),
@@ -244,5 +244,57 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
       _query = '';
       _selectedCategory = null;
     });
+  }
+}
+
+class _CatalogHeader extends StatelessWidget {
+  const _CatalogHeader({
+    required this.modelCount,
+    required this.templateCount,
+    required this.fromCache,
+  });
+
+  final int modelCount;
+  final int templateCount;
+  final bool fromCache;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return AppCard(
+      borderColor: colorScheme.primary.withValues(alpha: 0.24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              StatusChip(label: '$modelCount моделей', icon: Icons.widgets),
+              StatusChip(
+                label: '$templateCount шаблонов',
+                icon: Icons.auto_awesome_outlined,
+              ),
+              if (fromCache)
+                const StatusChip(
+                  label: 'Сохранённые данные',
+                  icon: Icons.offline_pin_outlined,
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text('Каталог инструментов', style: theme.textTheme.headlineMedium),
+          const SizedBox(height: 8),
+          Text(
+            'Выберите модель или готовый сценарий. Стоимость и доступность берутся из каталога.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

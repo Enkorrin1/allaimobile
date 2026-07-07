@@ -32,7 +32,7 @@ class GenerationModeSelector extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return SizedBox(
-      height: 104,
+      height: 112,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: options.length,
@@ -42,11 +42,11 @@ class GenerationModeSelector extends StatelessWidget {
           final selected = option.id == selectedId;
 
           return SizedBox(
-            width: 132,
+            width: 148,
             child: Material(
               color: selected
                   ? colorScheme.primaryContainer
-                  : colorScheme.surfaceContainerHighest,
+                  : colorScheme.surface,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
                 side: BorderSide(
@@ -59,13 +59,19 @@ class GenerationModeSelector extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 onTap: () => onSelected(option.id),
                 child: Padding(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          Icon(option.icon, size: 18),
+                          Icon(
+                            option.icon,
+                            size: 20,
+                            color: selected
+                                ? colorScheme.primary
+                                : colorScheme.onSurfaceVariant,
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -77,14 +83,25 @@ class GenerationModeSelector extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        option.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: Text(
+                          option.description,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
+                      ),
+                      Icon(
+                        selected
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        size: 18,
+                        color: selected
+                            ? colorScheme.primary
+                            : colorScheme.onSurfaceVariant,
                       ),
                     ],
                   ),

@@ -18,11 +18,16 @@ class StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final labelWidget = Text(
+      label,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
 
     if (onPressed != null) {
       return FilterChip(
         avatar: Icon(icon, size: 16),
-        label: Text(label),
+        label: labelWidget,
         selected: selected,
         onSelected: (_) => onPressed?.call(),
         showCheckmark: false,
@@ -36,7 +41,7 @@ class StatusChip extends StatelessWidget {
 
     return Chip(
       avatar: Icon(icon, size: 16),
-      label: Text(label),
+      label: labelWidget,
       visualDensity: VisualDensity.compact,
       backgroundColor: selected ? colorScheme.primaryContainer : null,
       side: BorderSide(

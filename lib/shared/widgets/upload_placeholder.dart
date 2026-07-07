@@ -17,21 +17,31 @@ class UploadPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final enabled = onPressed != null;
 
     return AppCard(
       onTap: onPressed,
+      borderColor: enabled
+          ? colorScheme.primary.withValues(alpha: 0.32)
+          : colorScheme.outlineVariant,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              color: enabled
+                  ? colorScheme.primaryContainer
+                  : colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
-              Icons.cloud_upload_outlined,
-              color: theme.colorScheme.primary,
+              enabled ? Icons.cloud_upload_outlined : Icons.lock_outline,
+              color: enabled
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(width: 14),
@@ -44,13 +54,17 @@ class UploadPlaceholder extends StatelessWidget {
                 Text(
                   description,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right),
+          const SizedBox(width: 8),
+          Icon(
+            enabled ? Icons.chevron_right : Icons.schedule,
+            color: colorScheme.onSurfaceVariant,
+          ),
         ],
       ),
     );

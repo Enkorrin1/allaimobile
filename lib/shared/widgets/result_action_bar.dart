@@ -8,7 +8,7 @@ class ResultActionBar extends StatelessWidget {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: [
+      children: const [
         _ActionChip(
           label: 'Сохранить',
           icon: Icons.download_outlined,
@@ -24,12 +24,12 @@ class ResultActionBar extends StatelessWidget {
           icon: Icons.repeat,
           feedback: 'Повтор генерации появится в следующем обновлении',
         ),
-        const _ActionChip(
+        _ActionChip(
           label: 'Источник скоро',
           icon: Icons.add_photo_alternate_outlined,
           enabled: false,
         ),
-        const _ActionChip(
+        _ActionChip(
           label: 'Улучшить скоро',
           icon: Icons.hd_outlined,
           enabled: false,
@@ -56,7 +56,7 @@ class _ActionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return ActionChip(
       avatar: Icon(icon, size: 18),
-      label: Text(label),
+      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
       onPressed: enabled
           ? () {
               final message = feedback;

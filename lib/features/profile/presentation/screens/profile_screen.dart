@@ -19,6 +19,7 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final balance = ref.watch(balanceProvider).value;
     final auth = ref.watch(authControllerProvider);
 
@@ -34,15 +35,25 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Профиль')),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           children: [
             AppCard(
+              borderColor: colorScheme.primary.withValues(alpha: 0.24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const CircleAvatar(
-                    radius: 28,
-                    child: Icon(Icons.person_outline),
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.person_outline,
+                      color: colorScheme.primary,
+                      size: 32,
+                    ),
                   ),
                   const SizedBox(height: 14),
                   Text(
@@ -55,7 +66,7 @@ class ProfileScreen extends ConsumerWidget {
                         ? 'Войдите, чтобы открыть профиль.'
                         : session.user.email,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -79,22 +90,18 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
-            PlaceholderCard(
+            const PlaceholderCard(
               icon: Icons.account_circle_outlined,
               title: 'Аккаунт',
-              description: 'Email, имя, подтверждение 18+ и локальная сессия.',
-              trailing: IconButton(
-                tooltip: 'Аккаунт',
-                onPressed: () {},
-                icon: const Icon(Icons.chevron_right),
-              ),
+              description:
+                  'Email, имя, подтверждение 18+ и локальная сессия. Редактирование профиля появится позже.',
             ),
             const SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.payments_outlined,
-              title: 'Койны и биллинг',
+              title: 'Койны и баланс',
               description:
-                  'Демо-баланс и пакеты видны сейчас; реальные покупки намеренно выключены.',
+                  'Демо-баланс и пакеты видны сейчас. Реальные покупки намеренно отключены в этой сборке.',
               trailing: IconButton(
                 tooltip: 'Открыть баланс',
                 onPressed: () => context.push(AppRoutes.pricing),
@@ -116,13 +123,15 @@ class ProfileScreen extends ConsumerWidget {
             const PlaceholderCard(
               icon: Icons.delete_outline,
               title: 'Удалить аккаунт',
-              description: 'Удаление аккаунта появится позже.',
+              description:
+                  'Удаление аккаунта появится после готового backend-контракта. Сейчас действие недоступно.',
             ),
             const SizedBox(height: 18),
             AppButton(
               label: 'Выйти',
               icon: Icons.logout,
               secondary: true,
+              fullWidth: true,
               onPressed: () => _confirmLogout(context, ref),
             ),
           ],

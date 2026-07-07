@@ -49,20 +49,20 @@ class ResultViewerScreen extends ConsumerWidget {
                 item.job.status == GenerationJobStatus.completed;
             final isActive = !item.job.isTerminal;
             final canShowResult = isCompleted && asset != null;
+            final accentColor = modelCategoryColor(item.model.category);
 
             return ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               children: [
                 if (isActive)
-                  _ActiveResultCard(job: item.job)
+                  _ActiveResultCard(job: item.job, accentColor: accentColor)
                 else
                   AspectRatio(
                     aspectRatio: asset?.type == AssetType.video ? 9 / 14 : 1,
                     child: AppCard(
                       padding: EdgeInsets.zero,
-                      color: modelCategoryColor(
-                        item.model.category,
-                      ).withValues(alpha: 0.12),
+                      color: accentColor.withValues(alpha: 0.1),
+                      borderColor: accentColor.withValues(alpha: 0.28),
                       child: Stack(
                         children: [
                           Positioned.fill(
@@ -71,9 +71,7 @@ class ResultViewerScreen extends ConsumerWidget {
                                     child: Icon(
                                       modelCategoryIcon(item.model.category),
                                       size: 84,
-                                      color: modelCategoryColor(
-                                        item.model.category,
-                                      ),
+                                      color: accentColor,
                                     ),
                                   )
                                 : GeneratedAssetPreview(
@@ -81,19 +79,33 @@ class ResultViewerScreen extends ConsumerWidget {
                                     thumbnailUrl: asset.thumbnailUrl,
                                     isVideo: asset.type == AssetType.video,
                                     fallbackIcon: assetIcon(asset.type),
-                                    accentColor: modelCategoryColor(
-                                      item.model.category,
-                                    ),
+                                    accentColor: accentColor,
                                   ),
                           ),
                           Positioned(
                             left: 12,
                             top: 12,
-                            child: StatusChip(
-                              label: jobStatusLabel(item.job.status),
-                              icon: isFailed
-                                  ? Icons.error_outline
-                                  : Icons.check_circle_outline,
+                            right: 12,
+                            child: Row(
+                              children: [
+                                StatusChip(
+                                  label: isFailed
+                                      ? 'Ошибка генерации'
+                                      : jobStatusLabel(item.job.status),
+                                  icon: isFailed
+                                      ? Icons.error_outline
+                                      : Icons.check_circle_outline,
+                                ),
+                                const Spacer(),
+                                StatusChip(
+                                  label:
+                                      item.template?.targetAspectRatio ??
+                                      item.job.settings['aspectRatio']
+                                          ?.toString() ??
+                                      'Формат',
+                                  icon: Icons.crop_original,
+                                ),
+                              ],
                             ),
                           ),
                           if (asset?.type == AssetType.video)
@@ -158,9 +170,10 @@ class ResultViewerScreen extends ConsumerWidget {
 }
 
 class _ActiveResultCard extends StatelessWidget {
-  const _ActiveResultCard({required this.job});
+  const _ActiveResultCard({required this.job, required this.accentColor});
 
   final GenerationJob job;
+  final Color accentColor;
 
   @override
   Widget build(BuildContext context) {
@@ -168,22 +181,27 @@ class _ActiveResultCard extends StatelessWidget {
     final progress = job.progress?.clamp(0.0, 1.0).toDouble();
 
     return AppCard(
+      borderColor: accentColor.withValues(alpha: 0.28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              Icon(Icons.auto_awesome, color: theme.colorScheme.primary),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  generationProgressLabel(job.status),
-                  style: theme.textTheme.titleMedium,
-                ),
+              StatusChip(
+                label: generationProgressLabel(job.status),
+                icon: Icons.timelapse,
+              ),
+              StatusChip(
+                label: '${((progress ?? 0) * 100).round()}%',
+                icon: Icons.bolt,
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
+          Text('В работе', style: theme.textTheme.headlineSmall),
+          const SizedBox(height: 8),
           LinearProgressIndicator(value: progress),
           const SizedBox(height: 12),
           Text(
@@ -226,6 +244,7 @@ class _FailedResultCard extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return AppCard(
+      borderColor: theme.colorScheme.error.withValues(alpha: 0.55),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

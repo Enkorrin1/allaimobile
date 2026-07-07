@@ -75,16 +75,9 @@ void main() {
   ) async {
     await pumpPhase7AApp(tester);
 
-    expect(find.text('AllAI'), findsOneWidget);
-    expect(find.text('Создавайте фото и видео с ИИ'), findsOneWidget);
-    expect(find.text('Фото'), findsOneWidget);
-    expect(find.text('Видео'), findsOneWidget);
-    expect(find.text('Шаблоны'), findsOneWidget);
-    expect(
-      find.widgetWithText(FilledButton, 'Создать аккаунт'),
-      findsOneWidget,
-    );
-    expect(find.widgetWithText(OutlinedButton, 'Войти'), findsOneWidget);
+    expect(find.text('Image to Video'), findsOneWidget);
+    expect(find.text('Continue'), findsOneWidget);
+    expect(find.text('I already have an account'), findsOneWidget);
   });
 
   testWidgets('Phase 7A login keeps validation and session behavior', (
@@ -92,7 +85,7 @@ void main() {
   ) async {
     final harness = await pumpPhase7AApp(tester);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Войти'));
+    await tester.tap(find.text('I already have an account'));
     await pumpRoute(tester);
     expect(find.text('Вход'), findsOneWidget);
 
@@ -109,7 +102,7 @@ void main() {
   testWidgets('Phase 7A register keeps legal gates tappable', (tester) async {
     await pumpPhase7AApp(tester);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Создать аккаунт'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
     await pumpRoute(tester);
 
     expect(find.text('Создать аккаунт'), findsWidgets);
@@ -125,7 +118,7 @@ void main() {
   testWidgets('Phase 7A password reset uses safe mock copy', (tester) async {
     await pumpPhase7AApp(tester);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Войти'));
+    await tester.tap(find.text('I already have an account'));
     await pumpRoute(tester);
     await tester.tap(find.widgetWithText(OutlinedButton, 'Забыли пароль?'));
     await pumpRoute(tester);
@@ -144,7 +137,7 @@ void main() {
     );
   });
 
-  testWidgets('Phase 7A shell keeps all bottom navigation labels', (
+  testWidgets('Phase 7A shell keeps reference bottom navigation labels', (
     tester,
   ) async {
     await pumpPhase7AApp(
@@ -153,10 +146,9 @@ void main() {
       initialLocation: AppRoutes.home,
     );
 
-    expect(find.text('Главная'), findsOneWidget);
-    expect(find.text('Создать'), findsOneWidget);
-    expect(find.text('Библиотека'), findsOneWidget);
-    expect(find.text('Студия'), findsOneWidget);
-    expect(find.text('Профиль'), findsOneWidget);
+    expect(find.text('Videos'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.byIcon(Icons.add), findsOneWidget);
+    expect(find.text('Projects'), findsOneWidget);
   });
 }

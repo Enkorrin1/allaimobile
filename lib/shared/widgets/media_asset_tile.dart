@@ -28,10 +28,21 @@ class MediaAssetTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final failed = _isFailedStatus(status);
+    final active = _isActiveStatus(status);
+    final statusIcon = failed
+        ? Icons.error_outline
+        : active
+        ? Icons.timelapse
+        : Icons.check_circle_outline;
 
     return AppCard(
       padding: EdgeInsets.zero,
       onTap: onTap,
+      borderColor: failed
+          ? colorScheme.error.withValues(alpha: 0.5)
+          : accentColor.withValues(alpha: 0.28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -49,12 +60,33 @@ class MediaAssetTile extends StatelessWidget {
                   if (preview != null)
                     Positioned.fill(child: preview!)
                   else
-                    Center(child: Icon(icon, size: 42, color: accentColor)),
+                    Center(child: Icon(icon, size: 46, color: accentColor)),
                   Positioned(
                     left: 10,
                     top: 10,
-                    child: StatusChip(label: kind, icon: icon),
+                    right: 10,
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: StatusChip(label: kind, icon: icon),
+                        ),
+                        const Spacer(),
+                        Flexible(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: StatusChip(label: status, icon: statusIcon),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  if (active)
+                    const Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: LinearProgressIndicator(minHeight: 3),
+                    ),
                 ],
               ),
             ),
@@ -66,28 +98,18 @@ class MediaAssetTile extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   subtitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color: colorScheme.onSurfaceVariant,
                   ),
-                ),
-                const SizedBox(height: 10),
-                StatusChip(
-                  label: status,
-                  icon:
-                      status == 'Failed' ||
-                          status == 'Ошибка' ||
-                          status == 'РћС€РёР±РєР°'
-                      ? Icons.error_outline
-                      : Icons.check_circle_outline,
                 ),
               ],
             ),
@@ -95,5 +117,23 @@ class MediaAssetTile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  bool _isFailedStatus(String value) {
+    final normalized = value.toLowerCase();
+    return normalized == 'failed' ||
+        normalized.contains('ошиб') ||
+        normalized.contains('error');
+  }
+
+  bool _isActiveStatus(String value) {
+    final normalized = value.toLowerCase();
+    return normalized.contains('очеред') ||
+        normalized.contains('генер') ||
+        normalized.contains('провер') ||
+        normalized.contains('сохраня') ||
+        normalized.contains('running') ||
+        normalized.contains('processing') ||
+        normalized.contains('queued');
   }
 }

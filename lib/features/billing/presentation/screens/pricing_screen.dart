@@ -1,232 +1,238 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../shared/widgets/app_button.dart';
-import '../../../../shared/widgets/app_card.dart';
-import '../../../../shared/widgets/cost_preview_card.dart';
 import '../../../../shared/widgets/error_state.dart';
 import '../../../../shared/widgets/loading_state.dart';
-import '../../../../shared/widgets/section_header.dart';
-import '../../../../shared/widgets/status_chip.dart';
+import '../../../../shared/widgets/neon_media_card.dart';
 import '../../../tools/presentation/view_models/catalog_ui_mappers.dart';
+import '../../domain/billing_models.dart';
 import '../providers/billing_providers.dart';
-import '../view_models/billing_copy.dart';
 
 class PricingScreen extends ConsumerWidget {
   const PricingScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final balanceAsync = ref.watch(balanceStateProvider);
     final packagesAsync = ref.watch(coinPackagesStateProvider);
-    final transactionsAsync = ref.watch(coinTransactionsStateProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Коины')),
+      backgroundColor: Colors.black,
       body: SafeArea(
         child: balanceAsync.when(
-          loading: () => const LoadingState(label: 'Загружаем баланс'),
+          loading: () => const LoadingState(label: 'Loading PRO'),
           error: (error, stackTrace) => ErrorState(
-            title: 'Баланс недоступен',
-            description: 'Не удалось загрузить данные по коинам.',
+            title: 'Balance is unavailable',
+            description: 'Coin data could not be loaded right now.',
             onRetry: () => ref.invalidate(balanceStateProvider),
           ),
           data: (balanceState) {
             final balance = balanceState.data;
+
             return ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(30, 8, 30, 28),
               children: [
-                Text('Баланс и пакеты', style: theme.textTheme.headlineMedium),
-                const SizedBox(height: 8),
-                Text(
-                  billingUnavailableCopy,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    tooltip: 'Back',
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-                if (balanceState.isFromCache ||
-                    balanceState.refreshError != null) ...[
-                  const SizedBox(height: 12),
-                  const StatusChip(
-                    label: 'Показываем сохраненные данные',
-                    icon: Icons.offline_pin_outlined,
+                const SizedBox(height: 4),
+                const NeonMediaCard(
+                  title: '',
+                  imageUrl:
+                      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1100&q=82',
+                  width: double.infinity,
+                  height: 520,
+                  borderRadius: 30,
+                ),
+                const SizedBox(height: 42),
+                const Text(
+                  'Start Creating Now',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 42,
+                    fontWeight: FontWeight.w900,
+                    height: 1.02,
                   ),
-                ],
-                const SizedBox(height: 16),
-                CostPreviewCard(
-                  costLabel:
-                      'Баланс: ${formatCoins(balance.coinBalance)} койнов',
-                  reserveCopy:
-                      'Доступно сейчас: ${formatCoins(balance.availableCoins)} койнов. Зарезервировано: ${formatCoins(balance.reservedCoins)}.',
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'Generate anything. PRO purchase flow will be connected after store setup.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xFFB8B8BE),
+                    fontSize: 20,
+                    height: 1.28,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 const SizedBox(height: 22),
-                const SectionHeader(title: 'Пакеты'),
-                const SizedBox(height: 8),
+                _BalancePill(
+                  availableCoins: balance.availableCoins,
+                  reservedCoins: balance.reservedCoins,
+                ),
+                const SizedBox(height: 24),
                 packagesAsync.when(
-                  loading: () => const LoadingState(label: 'Загружаем пакеты'),
+                  loading: () => const LoadingState(label: 'Loading packages'),
                   error: (error, stackTrace) => ErrorState(
-                    title: 'Пакеты недоступны',
-                    description:
-                        'Не удалось обновить список пакетов. Попробуйте позже.',
+                    title: 'Packages are unavailable',
+                    description: 'The demo package list could not be loaded.',
                     onRetry: () => ref.invalidate(coinPackagesStateProvider),
                   ),
-                  data: (packagesState) {
-                    final packages = packagesState.data;
-                    if (packages.isEmpty) {
-                      return ErrorState(
-                        title: 'Пакеты пока не добавлены',
-                        description:
-                            'Покупки появятся после подключения платежей.',
-                        onRetry: () =>
-                            ref.invalidate(coinPackagesStateProvider),
-                      );
-                    }
-                    return Column(
-                      children: [
-                        for (final package in packages) ...[
-                          AppCard(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(
-                                  package.isHighlighted
-                                      ? Icons.workspace_premium_outlined
-                                      : Icons.toll,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              package.name,
-                                              style:
-                                                  theme.textTheme.titleMedium,
-                                            ),
-                                          ),
-                                          if (package.isHighlighted)
-                                            const StatusChip(
-                                              label: 'Популярно',
-                                              icon: Icons.star_border,
-                                            ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        package.priceLabel ??
-                                            '${formatCoins(package.coinAmount)} койнов',
-                                        style: theme.textTheme.labelLarge,
-                                      ),
-                                      if (!package.isAvailable) ...[
-                                        const SizedBox(height: 6),
-                                        const StatusChip(
-                                          label: 'Недоступно',
-                                          icon: Icons.lock_outline,
-                                        ),
-                                      ],
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        package.description,
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                              color: theme
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-                      ],
-                    );
-                  },
+                  data: (packagesState) =>
+                      _PackageStrip(packages: packagesState.data),
                 ),
-                AppButton(
-                  label: topUpBalanceCopy,
-                  icon: Icons.lock_outline,
-                  onPressed: null,
-                ),
-                const SizedBox(height: 22),
-                const SectionHeader(title: 'Транзакции'),
-                const SizedBox(height: 8),
-                transactionsAsync.when(
-                  loading: () =>
-                      const LoadingState(label: 'Загружаем транзакции'),
-                  error: (error, stackTrace) => const ErrorState(
-                    title: 'Транзакции недоступны',
-                    description:
-                        'История операций временно недоступна. Попробуйте позже.',
+                const SizedBox(height: 28),
+                NeonPillButton(
+                  label: 'Continue',
+                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Purchases will be connected later.'),
+                    ),
                   ),
-                  data: (transactionsState) {
-                    if (transactionsState.data.isEmpty) {
-                      return const AppCard(
-                        child: ErrorState(
-                          title: 'Операций пока нет',
-                          description:
-                              'История появится после первых генераций или пополнений.',
-                        ),
-                      );
-                    }
-                    return Column(
-                      children: [
-                        for (final transaction in transactionsState.data) ...[
-                          AppCard(
-                            child: Row(
-                              children: [
-                                const Icon(Icons.receipt_long_outlined),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        transaction.title,
-                                        style: theme.textTheme.titleMedium,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        formatDateLabel(transaction.createdAt),
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: theme
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Text(
-                                  transaction.amount > 0
-                                      ? '+${formatCoins(transaction.amount)}'
-                                      : '-${formatCoins(transaction.amount.abs())}',
-                                  style: theme.textTheme.labelLarge,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                        ],
-                      ],
-                    );
-                  },
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'Demo mode. No live payment is charged in this build.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xFF8C8C92),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class _BalancePill extends StatelessWidget {
+  const _BalancePill({
+    required this.availableCoins,
+    required this.reservedCoins,
+  });
+
+  final int availableCoins;
+  final int reservedCoins;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: BoxDecoration(
+        color: allAiPanelSoft,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFF2B2B30)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.auto_awesome, color: allAiNeon),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '${formatCoins(availableCoins)} coins available',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          Text(
+            '${formatCoins(reservedCoins)} reserved',
+            style: const TextStyle(
+              color: allAiMuted,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PackageStrip extends StatelessWidget {
+  const _PackageStrip({required this.packages});
+
+  final List<CoinPackage> packages;
+
+  @override
+  Widget build(BuildContext context) {
+    if (packages.isEmpty) {
+      return const Text(
+        'Coin packages will appear here after billing setup.',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: allAiMuted),
+      );
+    }
+
+    return SizedBox(
+      height: 116,
+      child: ListView.separated(
+        clipBehavior: Clip.none,
+        scrollDirection: Axis.horizontal,
+        itemCount: packages.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final package = packages[index];
+          return Container(
+            width: 190,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: package.isHighlighted
+                  ? allAiNeon
+                  : const Color(0xFF171719),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: package.isHighlighted
+                    ? allAiNeon
+                    : const Color(0xFF2B2B30),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  package.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: package.isHighlighted ? Colors.black : Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${formatCoins(package.coinAmount)} coins',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: package.isHighlighted
+                        ? Colors.black.withValues(alpha: 0.72)
+                        : allAiMuted,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
