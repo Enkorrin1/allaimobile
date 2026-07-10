@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/auth/auth_session.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_text_field.dart';
@@ -49,9 +50,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final auth = ref.watch(authControllerProvider);
+    final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Регистрация')),
+      appBar: AppBar(title: Text(l10n.authRegisterTitle)),
       body: SafeArea(
         child: ListView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -62,10 +64,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             AppSpacing.lg + MediaQuery.viewInsetsOf(context).bottom,
           ),
           children: [
-            Text('Создать аккаунт', style: theme.textTheme.headlineSmall),
+            Text(
+              l10n.authRegisterHeadline,
+              style: theme.textTheme.headlineSmall,
+            ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'Демо-аккаунт сохранит сессию на этом устройстве и откроет доступ к генератору.',
+              l10n.authRegisterSubtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -78,7 +83,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   AppTextField(
                     key: const Key('register-email-field'),
                     controller: _emailController,
-                    label: 'Email',
+                    label: l10n.authEmailLabel,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     prefixIcon: const Icon(Icons.alternate_email),
@@ -89,8 +94,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   AppTextField(
                     key: const Key('register-name-field'),
                     controller: _nameController,
-                    label: 'Имя',
-                    hintText: 'Как к вам обращаться',
+                    label: l10n.authNameLabel,
+                    hintText: l10n.authNameHint,
                     textInputAction: TextInputAction.next,
                     prefixIcon: const Icon(Icons.person_outline),
                     autofillHints: const [AutofillHints.name],
@@ -99,8 +104,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   AppTextField(
                     key: const Key('register-password-field'),
                     controller: _passwordController,
-                    label: 'Пароль',
-                    hintText: 'Минимум 8 символов',
+                    label: l10n.authPasswordLabel,
+                    hintText: l10n.authPasswordMinHint,
                     obscureText: _obscurePassword,
                     textInputAction: TextInputAction.next,
                     prefixIcon: const Icon(Icons.lock_outline),
@@ -108,8 +113,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     autofillHints: const [AutofillHints.newPassword],
                     suffixIcon: IconButton(
                       tooltip: _obscurePassword
-                          ? 'Показать пароль'
-                          : 'Скрыть пароль',
+                          ? l10n.authShowPassword
+                          : l10n.authHidePassword,
                       onPressed: () {
                         setState(() => _obscurePassword = !_obscurePassword);
                       },
@@ -124,7 +129,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   AppTextField(
                     key: const Key('register-repeat-password-field'),
                     controller: _repeatPasswordController,
-                    label: 'Повторите пароль',
+                    label: l10n.authRepeatPasswordLabel,
                     obscureText: _obscurePassword,
                     textInputAction: TextInputAction.done,
                     prefixIcon: const Icon(Icons.lock_reset_outlined),
@@ -146,9 +151,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       setState(() => _acceptedTerms = value ?? false);
                     },
                     title: _legalLabel(
-                      prefix: 'Принимаю ',
-                      linkLabel: 'условия использования',
-                      title: 'Условия использования',
+                      prefix: l10n.authAcceptTermsPrefix,
+                      linkLabel: l10n.authTermsLabel,
+                      title: l10n.authTermsLabel,
                     ),
                     controlAffinity: ListTileControlAffinity.leading,
                   ),
@@ -159,9 +164,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       setState(() => _acceptedPrivacy = value ?? false);
                     },
                     title: _legalLabel(
-                      prefix: 'Принимаю ',
-                      linkLabel: 'политику конфиденциальности',
-                      title: 'Политика конфиденциальности',
+                      prefix: l10n.authAcceptPrivacyPrefix,
+                      linkLabel: l10n.authPrivacyLabel,
+                      title: l10n.authPrivacyLabel,
                     ),
                     controlAffinity: ListTileControlAffinity.leading,
                   ),
@@ -171,7 +176,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     onChanged: (value) {
                       setState(() => _confirmedAge18 = value ?? false);
                     },
-                    title: const Text('Подтверждаю, что мне есть 18 лет'),
+                    title: Text(l10n.authConfirmAge),
                     controlAffinity: ListTileControlAffinity.leading,
                   ),
                 ],
@@ -192,7 +197,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ],
             const SizedBox(height: AppSpacing.lg),
             AppButton(
-              label: auth.isSubmitting ? 'Создаем...' : 'Создать аккаунт',
+              label: auth.isSubmitting
+                  ? l10n.authRegisterSubmitting
+                  : l10n.authRegisterButton,
               icon: Icons.person_add_alt_1,
               fullWidth: true,
               onPressed: auth.isSubmitting || !_canSubmit ? null : _submit,
@@ -200,7 +207,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SizedBox(height: AppSpacing.sm),
             TextButton(
               onPressed: () => context.go(AppRoutes.login),
-              child: const Text('Уже есть аккаунт? Войти'),
+              child: Text(l10n.authHaveAccount),
             ),
           ],
         ),
@@ -236,6 +243,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       showDragHandle: true,
       builder: (context) {
         final theme = Theme.of(context);
+        final l10n = context.l10n;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -251,7 +259,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 Text(title, style: theme.textTheme.titleLarge),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  'Юридический текст будет подключен после утверждения ссылок. Сейчас это демо-заглушка.',
+                  l10n.authLegalPlaceholder,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -261,7 +269,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Понятно'),
+                    child: Text(l10n.authLegalConfirm),
                   ),
                 ),
               ],

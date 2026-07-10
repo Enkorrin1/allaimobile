@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/neon_media_card.dart';
 
 class AuthWelcomeScreen extends StatelessWidget {
@@ -9,6 +10,8 @@ class AuthWelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -28,10 +31,10 @@ class AuthWelcomeScreen extends StatelessWidget {
                       child: const _OnboardingHero(),
                     ),
                     SizedBox(height: compact ? 24 : 42),
-                    const Text(
-                      'Image to Video',
+                    Text(
+                      l10n.authWelcomeTitle,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 44,
                         fontWeight: FontWeight.w900,
@@ -39,10 +42,10 @@ class AuthWelcomeScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: compact ? 12 : 18),
-                    const Text(
-                      'Turn your ideas into AI video with cinematic effects',
+                    Text(
+                      l10n.authWelcomeSubtitle,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Color(0xFFB8B8BE),
                         fontSize: 21,
                         height: 1.28,
@@ -51,7 +54,7 @@ class AuthWelcomeScreen extends StatelessWidget {
                     ),
                     SizedBox(height: compact ? 22 : 34),
                     NeonPillButton(
-                      label: 'Continue',
+                      label: l10n.commonContinue,
                       onPressed: () => context.go(AppRoutes.register),
                     ),
                     const SizedBox(height: 14),
@@ -64,13 +67,13 @@ class AuthWelcomeScreen extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      child: const Text('I already have an account'),
+                      child: Text(l10n.authWelcomeLogin),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Registration requires 18+ confirmation and AllAi terms acceptance.',
+                    Text(
+                      l10n.authWelcomeLegal,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Color(0xFF7D7D84),
                         fontSize: 12,
                         height: 1.25,

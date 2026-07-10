@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/error_state.dart';
 import '../../../../shared/widgets/loading_state.dart';
 import '../../../../shared/widgets/neon_media_card.dart';
@@ -16,16 +17,17 @@ class LibraryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final historyAsync = ref.watch(libraryHistoryProvider);
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         bottom: false,
         child: historyAsync.when(
-          loading: () => const LoadingState(label: 'Loading projects'),
-          error: (error, stackTrace) => const ErrorState(
-            title: 'Projects are unavailable',
-            description: 'Generation history could not be loaded.',
+          loading: () => LoadingState(label: l10n.projectsLoading),
+          error: (error, stackTrace) => ErrorState(
+            title: l10n.projectsUnavailableTitle,
+            description: l10n.projectsUnavailableDescription,
           ),
           data: (history) {
             if (history.isEmpty) {
@@ -44,10 +46,10 @@ class LibraryScreen extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Text(
-                                'Projects',
-                                style: TextStyle(
+                                l10n.projectsTitle,
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 44,
                                   fontWeight: FontWeight.w900,
@@ -56,7 +58,7 @@ class LibraryScreen extends ConsumerWidget {
                               ),
                             ),
                             NeonPillButton(
-                              label: 'New',
+                              label: l10n.projectsNew,
                               icon: Icons.add,
                               expand: false,
                               height: 46,
@@ -66,7 +68,7 @@ class LibraryScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          '${history.length} saved generations',
+                          l10n.projectsSavedCount(history.length),
                           style: const TextStyle(
                             color: allAiMuted,
                             fontSize: 16,
@@ -136,12 +138,14 @@ class _EmptyProjects extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(30, 18, 30, 126),
       children: [
-        const Text(
-          'Projects',
-          style: TextStyle(
+        Text(
+          l10n.projectsTitle,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 44,
             fontWeight: FontWeight.w900,
@@ -149,9 +153,9 @@ class _EmptyProjects extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 32),
-        const NeonMediaCard(
-          title: 'Create Your Magic',
-          subtitle: 'Your AI videos and images will appear here',
+        NeonMediaCard(
+          title: l10n.projectsEmptyTitle,
+          subtitle: l10n.projectsEmptySubtitle,
           imageUrl:
               'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1000&q=82',
           width: double.infinity,
@@ -160,7 +164,7 @@ class _EmptyProjects extends StatelessWidget {
           centerContent: true,
         ),
         const SizedBox(height: 28),
-        NeonPillButton(label: 'Create first project', onPressed: onCreate),
+        NeonPillButton(label: l10n.projectsCreateFirst, onPressed: onCreate),
       ],
     );
   }

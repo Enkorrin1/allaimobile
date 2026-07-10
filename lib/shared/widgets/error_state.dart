@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
 import 'app_button.dart';
 
 class ErrorState extends StatelessWidget {
@@ -7,7 +8,7 @@ class ErrorState extends StatelessWidget {
     required this.title,
     required this.description,
     this.onRetry,
-    this.actionLabel = 'Повторить',
+    this.actionLabel,
     this.actionIcon = Icons.refresh,
     super.key,
   });
@@ -15,7 +16,7 @@ class ErrorState extends StatelessWidget {
   final String title;
   final String description;
   final VoidCallback? onRetry;
-  final String actionLabel;
+  final String? actionLabel;
   final IconData actionIcon;
 
   @override
@@ -58,7 +59,7 @@ class ErrorState extends StatelessWidget {
             if (onRetry != null) ...[
               const SizedBox(height: 20),
               AppButton(
-                label: actionLabel,
+                label: actionLabel ?? context.l10n.commonRetry,
                 icon: actionIcon,
                 onPressed: onRetry,
               ),

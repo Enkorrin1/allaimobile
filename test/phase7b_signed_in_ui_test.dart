@@ -120,9 +120,9 @@ void main() {
     expect(find.text('Videos'), findsOneWidget);
     expect(find.text('Product UGC Hook'), findsWidgets);
     expect(find.text('Try Now'), findsOneWidget);
-    expect(find.text('Готовые сценарии'), findsOneWidget);
-    await scrollUntilVisible(tester, find.text('Маркетинг студия'));
-    expect(find.text('Маркетинг студия'), findsOneWidget);
+    expect(find.text('Ready scenarios'), findsOneWidget);
+    await scrollUntilVisible(tester, find.text('Marketing studio'));
+    expect(find.text('Marketing studio'), findsOneWidget);
   });
 
   testWidgets('Phase 7B plus opens Create sheet before composer', (
@@ -136,8 +136,8 @@ void main() {
     expect(find.text('Describe a video...'), findsOneWidget);
     expect(find.text('Add image'), findsOneWidget);
     expect(find.text('Generate'), findsOneWidget);
-    expect(find.text('ФОРМАТ'), findsOneWidget);
-    expect(find.text('МОДЕЛИ'), findsOneWidget);
+    expect(find.text('FORMAT'), findsOneWidget);
+    expect(find.text('MODELS'), findsOneWidget);
     expect(find.text('Kling'), findsOneWidget);
     expect(find.text('Seedance'), findsOneWidget);
   });
@@ -213,7 +213,7 @@ void main() {
     await pumpRoute(tester);
 
     expect(find.text('Projects'), findsWidgets);
-    expect(find.textContaining('saved generations'), findsOneWidget);
+    expect(find.textContaining('saved generation'), findsOneWidget);
     expect(find.byType(NeonMediaCard), findsWidgets);
   });
 }

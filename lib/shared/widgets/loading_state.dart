@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
-class LoadingState extends StatelessWidget {
-  const LoadingState({this.label = 'Загружаем данные', super.key});
+import '../../l10n/l10n.dart';
 
-  final String label;
+class LoadingState extends StatelessWidget {
+  const LoadingState({this.label, super.key});
+
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +27,7 @@ class LoadingState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              label,
+              label ?? context.l10n.commonLoading,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/error_state.dart';
 import '../../../../shared/widgets/loading_state.dart';
 import '../../../../shared/widgets/neon_media_card.dart';
@@ -15,15 +16,16 @@ class PricingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final balanceAsync = ref.watch(balanceStateProvider);
     final packagesAsync = ref.watch(coinPackagesStateProvider);
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         child: balanceAsync.when(
-          loading: () => const LoadingState(label: 'Loading PRO'),
+          loading: () => LoadingState(label: l10n.pricingLoadingPro),
           error: (error, stackTrace) => ErrorState(
-            title: 'Balance is unavailable',
-            description: 'Coin data could not be loaded right now.',
+            title: l10n.pricingBalanceUnavailableTitle,
+            description: l10n.pricingBalanceUnavailableDescription,
             onRetry: () => ref.invalidate(balanceStateProvider),
           ),
           data: (balanceState) {
@@ -35,7 +37,7 @@ class PricingScreen extends ConsumerWidget {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: IconButton(
-                    tooltip: 'Back',
+                    tooltip: l10n.commonBack,
                     onPressed: () => Navigator.of(context).maybePop(),
                     icon: const Icon(
                       Icons.arrow_back_ios_new_rounded,
@@ -53,10 +55,10 @@ class PricingScreen extends ConsumerWidget {
                   borderRadius: 30,
                 ),
                 const SizedBox(height: 42),
-                const Text(
-                  'Start Creating Now',
+                Text(
+                  l10n.pricingStartTitle,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 42,
                     fontWeight: FontWeight.w900,
@@ -64,10 +66,10 @@ class PricingScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 18),
-                const Text(
-                  'Generate anything. PRO purchase flow will be connected after store setup.',
+                Text(
+                  l10n.pricingStartSubtitle,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xFFB8B8BE),
                     fontSize: 20,
                     height: 1.28,
@@ -81,10 +83,11 @@ class PricingScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 packagesAsync.when(
-                  loading: () => const LoadingState(label: 'Loading packages'),
+                  loading: () =>
+                      LoadingState(label: l10n.pricingLoadingPackages),
                   error: (error, stackTrace) => ErrorState(
-                    title: 'Packages are unavailable',
-                    description: 'The demo package list could not be loaded.',
+                    title: l10n.pricingPackagesUnavailableTitle,
+                    description: l10n.pricingPackagesUnavailableDescription,
                     onRetry: () => ref.invalidate(coinPackagesStateProvider),
                   ),
                   data: (packagesState) =>
@@ -92,18 +95,16 @@ class PricingScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 28),
                 NeonPillButton(
-                  label: 'Continue',
+                  label: l10n.commonContinue,
                   onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Purchases will be connected later.'),
-                    ),
+                    SnackBar(content: Text(l10n.pricingContinueSnack)),
                   ),
                 ),
                 const SizedBox(height: 18),
-                const Text(
-                  'Demo mode. No live payment is charged in this build.',
+                Text(
+                  l10n.pricingDemoMode,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xFF8C8C92),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -129,6 +130,8 @@ class _BalancePill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       decoration: BoxDecoration(
@@ -142,7 +145,7 @@ class _BalancePill extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '${formatCoins(availableCoins)} coins available',
+              l10n.pricingCoinsAvailable(formatCoins(availableCoins)),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
@@ -153,7 +156,7 @@ class _BalancePill extends StatelessWidget {
             ),
           ),
           Text(
-            '${formatCoins(reservedCoins)} reserved',
+            l10n.pricingReserved(formatCoins(reservedCoins)),
             style: const TextStyle(
               color: allAiMuted,
               fontSize: 13,
@@ -173,11 +176,13 @@ class _PackageStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     if (packages.isEmpty) {
-      return const Text(
-        'Coin packages will appear here after billing setup.',
+      return Text(
+        l10n.pricingPackagesEmpty,
         textAlign: TextAlign.center,
-        style: TextStyle(color: allAiMuted),
+        style: const TextStyle(color: allAiMuted),
       );
     }
 
@@ -219,7 +224,7 @@ class _PackageStrip extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '${formatCoins(package.coinAmount)} coins',
+                  l10n.pricingPackageCoins(formatCoins(package.coinAmount)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

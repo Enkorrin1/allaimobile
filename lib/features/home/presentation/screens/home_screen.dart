@@ -8,6 +8,7 @@ import '../../../../features/library/presentation/providers/library_providers.da
 import '../../../../features/tools/domain/catalog_models.dart';
 import '../../../../features/tools/presentation/providers/catalog_providers.dart';
 import '../../../../features/tools/presentation/view_models/catalog_ui_mappers.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/error_state.dart';
 import '../../../../shared/widgets/loading_state.dart';
 import '../../../../shared/widgets/neon_media_card.dart';
@@ -20,16 +21,17 @@ class HomeScreen extends ConsumerWidget {
     final balance = ref.watch(balanceProvider).value;
     final catalogAsync = ref.watch(catalogProvider);
     final history = ref.watch(libraryHistoryProvider).value ?? const [];
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         bottom: false,
         child: catalogAsync.when(
-          loading: () => const LoadingState(label: 'Loading effects'),
-          error: (error, stackTrace) => const ErrorState(
-            title: 'Effects are unavailable',
-            description: 'Try refreshing the catalog a little later.',
+          loading: () => LoadingState(label: l10n.homeLoadingEffects),
+          error: (error, stackTrace) => ErrorState(
+            title: l10n.homeEffectsUnavailableTitle,
+            description: l10n.homeEffectsUnavailableDescription,
           ),
           data: (catalog) {
             final recentProjects = history.take(3).toList();
@@ -88,9 +90,9 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 NeonSectionHeader(
-                  title: 'Готовые сценарии',
-                  subtitle: 'Выберите формат и начните создавать',
-                  actionLabel: 'All',
+                  title: l10n.homeReadyScenariosTitle,
+                  subtitle: l10n.homeReadyScenariosSubtitle,
+                  actionLabel: l10n.homeActionAll,
                   onActionPressed: () => context.push(AppRoutes.tools),
                 ),
                 const SizedBox(height: 14),
@@ -99,9 +101,9 @@ class HomeScreen extends ConsumerWidget {
                   onTap: (item) => _openEffect(context, item),
                 ),
                 const SizedBox(height: 26),
-                const NeonSectionHeader(
-                  title: 'Маркетинг студия',
-                  subtitle: 'UGC, анбоксинг, примерка, демо',
+                NeonSectionHeader(
+                  title: l10n.homeMarketingTitle,
+                  subtitle: l10n.homeMarketingSubtitle,
                 ),
                 const SizedBox(height: 14),
                 _EffectStrip(
@@ -110,9 +112,9 @@ class HomeScreen extends ConsumerWidget {
                   onTap: (item) => _openEffect(context, item),
                 ),
                 const SizedBox(height: 26),
-                const NeonSectionHeader(
-                  title: 'ИИ-видео студия',
-                  subtitle: 'Seedance, zine-ритм и cinematic presets',
+                NeonSectionHeader(
+                  title: l10n.homeVideoStudioTitle,
+                  subtitle: l10n.homeVideoStudioSubtitle,
                 ),
                 const SizedBox(height: 14),
                 _EffectStrip(
@@ -122,9 +124,9 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 28),
                 NeonSectionHeader(
-                  title: 'Create Your Magic',
-                  subtitle: 'Bring your imagination to life!',
-                  actionLabel: 'Open',
+                  title: l10n.homeMagicTitle,
+                  subtitle: l10n.homeMagicSubtitle,
+                  actionLabel: l10n.homeActionOpen,
                   onActionPressed: () => context.go(AppRoutes.create),
                 ),
                 const SizedBox(height: 16),
@@ -138,8 +140,8 @@ class HomeScreen extends ConsumerWidget {
                 if (recentProjects.isNotEmpty) ...[
                   const SizedBox(height: 26),
                   NeonSectionHeader(
-                    title: 'Recent Projects',
-                    actionLabel: 'Open',
+                    title: l10n.homeRecentProjectsTitle,
+                    actionLabel: l10n.homeActionOpen,
                     onActionPressed: () => context.go(AppRoutes.library),
                   ),
                   const SizedBox(height: 14),
@@ -178,6 +180,8 @@ class HomeScreen extends ConsumerWidget {
   }
 
   void _showHomeMenu(BuildContext context) {
+    final l10n = context.l10n;
+
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: const Color(0xFF111113),
@@ -190,7 +194,7 @@ class HomeScreen extends ConsumerWidget {
             children: [
               _MenuTile(
                 icon: Icons.widgets_outlined,
-                title: 'All effects',
+                title: l10n.homeAllEffects,
                 onTap: () {
                   Navigator.of(context).pop();
                   context.push(AppRoutes.tools);
@@ -198,7 +202,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               _MenuTile(
                 icon: Icons.person_outline,
-                title: 'Profile',
+                title: l10n.profileTitle,
                 onTap: () {
                   Navigator.of(context).pop();
                   context.go(AppRoutes.profile);
@@ -206,7 +210,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               _MenuTile(
                 icon: Icons.settings_outlined,
-                title: 'Settings',
+                title: l10n.settingsTitle,
                 onTap: () {
                   Navigator.of(context).pop();
                   context.push(AppRoutes.settings);
@@ -258,14 +262,16 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Row(
       children: [
-        const Expanded(
+        Expanded(
           child: Text(
-            'Videos',
+            l10n.homeTitleVideos,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 40,
               fontWeight: FontWeight.w900,
@@ -300,7 +306,7 @@ class _TopBar extends StatelessWidget {
         ),
         const SizedBox(width: 14),
         IconButton(
-          tooltip: 'Menu',
+          tooltip: l10n.commonMenu,
           onPressed: onMenu,
           icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 32),
         ),
@@ -329,7 +335,7 @@ class _HeroShowcase extends StatelessWidget {
       height: 330,
       borderRadius: 26,
       centerContent: true,
-      ctaLabel: 'Try Now',
+      ctaLabel: context.l10n.homeTryNow,
       onTap: onTap,
     );
   }
@@ -386,6 +392,8 @@ class _MagicStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return SizedBox(
       height: 256,
       child: ListView(
@@ -393,7 +401,7 @@ class _MagicStrip extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         children: [
           NeonMediaCard(
-            title: primary?.title ?? 'Video Generation',
+            title: primary?.title ?? l10n.generatorTitleVideo,
             imageUrl: primary?.previewUrl ?? _FallbackImages.projectFallback,
             width: 330,
             height: 256,
@@ -402,7 +410,7 @@ class _MagicStrip extends StatelessWidget {
           ),
           const SizedBox(width: 14),
           NeonMediaCard(
-            title: secondary?.title ?? 'Image Generation',
+            title: secondary?.title ?? l10n.generatorTitleImage,
             imageUrl: secondary?.previewUrl ?? _FallbackImages.projectFallback,
             width: 210,
             height: 256,

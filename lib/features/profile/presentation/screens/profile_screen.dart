@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/coin_balance_chip.dart';
@@ -22,17 +23,18 @@ class ProfileScreen extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     final balance = ref.watch(balanceProvider).value;
     final auth = ref.watch(authControllerProvider);
+    final l10n = context.l10n;
 
     if (auth.isRestoring) {
-      return const Scaffold(
-        body: SafeArea(child: LoadingState(label: 'Восстанавливаем сессию')),
+      return Scaffold(
+        body: SafeArea(child: LoadingState(label: l10n.profileRestoring)),
       );
     }
 
     final session = auth.session;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Профиль')),
+      appBar: AppBar(title: Text(l10n.profileTitle)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
@@ -57,13 +59,13 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    session?.user.displayName ?? 'Аккаунт AllAi',
+                    session?.user.displayName ?? l10n.profileFallbackName,
                     style: theme.textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     session == null
-                        ? 'Войдите, чтобы открыть профиль.'
+                        ? l10n.profileSignInPrompt
                         : session.user.email,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
@@ -74,14 +76,16 @@ class ProfileScreen extends ConsumerWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      const StatusChip(
-                        label: 'Сессия активна',
+                      StatusChip(
+                        label: l10n.profileSessionActive,
                         icon: Icons.verified_user_outlined,
                       ),
                       CoinBalanceChip(
                         label: balance == null
-                            ? 'Баланс загружается'
-                            : 'Баланс: ${formatCoins(balance.coinBalance)} койнов',
+                            ? l10n.profileBalanceLoading
+                            : l10n.profileBalanceCoins(
+                                formatCoins(balance.coinBalance),
+                              ),
                         onPressed: () => context.push(AppRoutes.pricing),
                       ),
                     ],
@@ -90,20 +94,18 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
-            const PlaceholderCard(
+            PlaceholderCard(
               icon: Icons.account_circle_outlined,
-              title: 'Аккаунт',
-              description:
-                  'Email, имя, подтверждение 18+ и локальная сессия. Редактирование профиля появится позже.',
+              title: l10n.profileAccountTitle,
+              description: l10n.profileAccountDescription,
             ),
             const SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.payments_outlined,
-              title: 'Койны и баланс',
-              description:
-                  'Демо-баланс и пакеты видны сейчас. Реальные покупки намеренно отключены в этой сборке.',
+              title: l10n.profileCoinsTitle,
+              description: l10n.profileCoinsDescription,
               trailing: IconButton(
-                tooltip: 'Открыть баланс',
+                tooltip: l10n.profileOpenBalance,
                 onPressed: () => context.push(AppRoutes.pricing),
                 icon: const Icon(Icons.chevron_right),
               ),
@@ -111,24 +113,23 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.settings_outlined,
-              title: 'Настройки',
-              description: 'Язык, уведомления, юридические ссылки и поддержка.',
+              title: l10n.settingsTitle,
+              description: l10n.profileSettingsDescription,
               trailing: IconButton(
-                tooltip: 'Открыть настройки',
+                tooltip: l10n.profileOpenSettings,
                 onPressed: () => context.push(AppRoutes.settings),
                 icon: const Icon(Icons.chevron_right),
               ),
             ),
             const SizedBox(height: 12),
-            const PlaceholderCard(
+            PlaceholderCard(
               icon: Icons.delete_outline,
-              title: 'Удалить аккаунт',
-              description:
-                  'Удаление аккаунта появится после готового backend-контракта. Сейчас действие недоступно.',
+              title: l10n.settingsDeleteAccountTitle,
+              description: l10n.profileDeleteDescription,
             ),
             const SizedBox(height: 18),
             AppButton(
-              label: 'Выйти',
+              label: l10n.commonLogout,
               icon: Icons.logout,
               secondary: true,
               fullWidth: true,
@@ -141,19 +142,20 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Выйти из аккаунта?'),
-        content: const Text('Локальная история останется на устройстве.'),
+        title: Text(l10n.profileLogoutTitle),
+        content: Text(l10n.profileLogoutContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Отмена'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Выйти'),
+            child: Text(l10n.commonLogout),
           ),
         ],
       ),

@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/l10n.dart';
 import '../router/app_routes.dart';
 import '../../shared/widgets/neon_media_card.dart';
 
@@ -77,38 +78,29 @@ class AppShell extends StatelessWidget {
 enum _CreateAction { video, image, effects, motion }
 
 class _CreateOptionData {
-  const _CreateOptionData({
-    required this.label,
-    required this.imageUrl,
-    required this.action,
-  });
+  const _CreateOptionData({required this.imageUrl, required this.action});
 
-  final String label;
   final String imageUrl;
   final _CreateAction action;
 }
 
 const _createSheetOptions = [
   _CreateOptionData(
-    label: 'VIDEO',
     imageUrl:
         'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=82',
     action: _CreateAction.video,
   ),
   _CreateOptionData(
-    label: 'IMAGE',
     imageUrl:
         'https://images.unsplash.com/photo-1495385794356-15371f348c31?auto=format&fit=crop&w=700&q=82',
     action: _CreateAction.image,
   ),
   _CreateOptionData(
-    label: 'EFFECTS',
     imageUrl:
         'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=700&q=82',
     action: _CreateAction.effects,
   ),
   _CreateOptionData(
-    label: 'MOTION',
     imageUrl:
         'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=700&q=82',
     action: _CreateAction.motion,
@@ -131,6 +123,7 @@ class _NeonBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
+    final l10n = context.l10n;
 
     return DecoratedBox(
       decoration: const BoxDecoration(
@@ -147,14 +140,14 @@ class _NeonBottomBar extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _BottomItem(
-                  label: 'Home',
+                  label: l10n.navHome,
                   icon: Icons.movie_creation_outlined,
                   selected: currentIndex == 0,
                   onTap: onHome,
                 ),
                 _CreateButton(onTap: onCreate, selected: currentIndex == 1),
                 _BottomItem(
-                  label: 'Projects',
+                  label: l10n.navProjects,
                   icon: Icons.video_library_outlined,
                   selected: currentIndex == 2,
                   onTap: onProjects,
@@ -247,6 +240,7 @@ class _CreateSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final screen = MediaQuery.sizeOf(context);
     final maxHeight = screen.height * 0.64;
+    final l10n = context.l10n;
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -265,9 +259,9 @@ class _CreateSheet extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Create',
-                    style: TextStyle(
+                  Text(
+                    l10n.createSheetTitle,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 34,
                       fontWeight: FontWeight.w900,
@@ -326,6 +320,13 @@ class _CreateOptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final label = switch (option.action) {
+      _CreateAction.video => context.l10n.createVideo,
+      _CreateAction.image => context.l10n.createImage,
+      _CreateAction.effects => context.l10n.createEffects,
+      _CreateAction.motion => context.l10n.createMotion,
+    };
+
     return Material(
       color: allAiPanel,
       borderRadius: BorderRadius.circular(18),
@@ -361,7 +362,7 @@ class _CreateOptionTile extends StatelessWidget {
               right: 20,
               bottom: 18,
               child: Text(
-                option.label,
+                label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(

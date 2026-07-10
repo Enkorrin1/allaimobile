@@ -11,6 +11,7 @@ import '../../../../features/generation_jobs/presentation/providers/generation_j
 import '../../../../features/tools/domain/catalog_models.dart';
 import '../../../../features/tools/presentation/providers/catalog_providers.dart';
 import '../../../../features/tools/presentation/view_models/catalog_ui_mappers.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/neon_media_card.dart';
 
 class GeneratorScreen extends ConsumerStatefulWidget {
@@ -31,13 +32,6 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
   bool _restoreRequested = false;
   AiModelCategory _selectedCategory = AiModelCategory.video;
   String? _selectedModelId;
-
-  static const _suggestions = [
-    'Futuristic walk of her',
-    'Majestic baby tiger walk',
-    'Tiny dragon flying',
-    'Cinematic product reveal',
-  ];
 
   @override
   void initState() {
@@ -74,6 +68,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
     final catalogAsync = ref.watch(catalogStateProvider);
     final balanceAsync = ref.watch(balanceStateProvider);
     final jobState = ref.watch(generationJobControllerProvider);
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -82,8 +77,8 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
         child: catalogAsync.when(
           loading: () => const _ComposerLoading(),
           error: (error, stackTrace) => _ComposerError(
-            title: 'Generator unavailable',
-            description: 'Could not load creation tools. Try again.',
+            title: l10n.generatorUnavailableTitle,
+            description: l10n.generatorUnavailableDescription,
             onRetry: () => ref.invalidate(catalogStateProvider),
           ),
           data: (state) {
@@ -96,9 +91,8 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
 
             if (selectedModel == null) {
               return _ComposerError(
-                title: 'No generator available',
-                description:
-                    'Creation models will appear after catalog update.',
+                title: l10n.generatorNoGeneratorTitle,
+                description: l10n.generatorNoGeneratorDescription,
                 onRetry: () => ref.invalidate(catalogStateProvider),
               );
             }
@@ -108,6 +102,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
             final availableCoins =
                 balanceAsync.asData?.value.data.availableCoins;
             final disabledReason = _disabledReason(
+              context,
               model: selectedModel,
               generationCost: generationCost,
               availableCoins: availableCoins,
@@ -123,7 +118,12 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
               selectedCategory: _selectedCategory,
               models: visibleModels,
               selectedModel: selectedModel,
-              suggestions: _suggestions,
+              suggestions: [
+                l10n.generatorSuggestionFuturistic,
+                l10n.generatorSuggestionTiger,
+                l10n.generatorSuggestionDragon,
+                l10n.generatorSuggestionProduct,
+              ],
               disabledReason: disabledReason,
               showDisabledReason:
                   _prompt.trim().isNotEmpty || disabledReason == null,
@@ -151,9 +151,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
               },
               onAddImage: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Image upload will be connected later.'),
-                  ),
+                  SnackBar(content: Text(l10n.generatorImageUploadLater)),
                 );
               },
               onRetry: (job) async {
@@ -219,19 +217,21 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
     return templates.isEmpty ? null : templates.first;
   }
 
-  String? _disabledReason({
+  String? _disabledReason(
+    BuildContext context, {
     required AiModel model,
     required int generationCost,
     required int? availableCoins,
     required bool balanceIsLoading,
     required String prompt,
   }) {
-    if (prompt.trim().isEmpty) return _emptyPromptCopy(model.category);
+    final l10n = context.l10n;
+    if (prompt.trim().isEmpty) return _emptyPromptCopy(context, model.category);
     if (!model.isAvailable) return modelAvailabilityDescription(model);
     if (availableCoins == null) {
       return balanceIsLoading
-          ? 'Loading balance...'
-          : 'Balance is temporarily unavailable.';
+          ? l10n.generatorLoadingBalance
+          : l10n.generatorBalanceUnavailable;
     }
     if (generationCost > availableCoins) {
       return insufficientCoinsQuoteCopy(
@@ -242,13 +242,16 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
     return null;
   }
 
-  String _emptyPromptCopy(AiModelCategory category) => switch (category) {
-    AiModelCategory.image => 'Describe an image to generate.',
-    AiModelCategory.video => 'Describe a video to generate.',
-    AiModelCategory.upscale => 'Describe what needs better quality.',
-    AiModelCategory.avatar => 'Describe the avatar scene.',
-    AiModelCategory.motion => 'Describe the motion you want.',
-  };
+  String _emptyPromptCopy(BuildContext context, AiModelCategory category) {
+    final l10n = context.l10n;
+    return switch (category) {
+      AiModelCategory.image => l10n.generatorEmptyImage,
+      AiModelCategory.video => l10n.generatorEmptyVideo,
+      AiModelCategory.upscale => l10n.generatorEmptyUpscale,
+      AiModelCategory.avatar => l10n.generatorEmptyAvatar,
+      AiModelCategory.motion => l10n.generatorEmptyMotion,
+    };
+  }
 
   void _openResult(BuildContext context, GenerationJobResponse response) {
     if (response.job.status != GenerationJobStatus.completed ||
@@ -309,6 +312,7 @@ class _VideoComposer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final l10n = context.l10n;
 
     return Column(
       children: [
@@ -332,14 +336,14 @@ class _VideoComposer extends StatelessWidget {
                       color: Colors.white,
                       size: 30,
                     ),
-                    tooltip: 'Close',
+                    tooltip: l10n.commonClose,
                   ),
                 ),
               ),
               Expanded(
                 child: Center(
                   child: Text(
-                    _screenTitle(selectedCategory),
+                    _screenTitle(context, selectedCategory),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -384,7 +388,7 @@ class _VideoComposer extends StatelessWidget {
                       height: 1.18,
                     ),
                     decoration: InputDecoration(
-                      hintText: _promptHint(selectedCategory),
+                      hintText: _promptHint(context, selectedCategory),
                       hintStyle: const TextStyle(
                         color: Color(0xFF88888D),
                         fontSize: 27,
@@ -424,7 +428,7 @@ class _VideoComposer extends StatelessWidget {
                   generationCost: generationCost,
                   disabledReason: showDisabledReason ? disabledReason : null,
                 ),
-                _GenerationStatus(
+                _LocalizedGenerationStatus(
                   state: jobState,
                   onOpenResult: (response) =>
                       _openCompletedResult(context, response),
@@ -447,21 +451,27 @@ class _VideoComposer extends StatelessWidget {
     );
   }
 
-  String _screenTitle(AiModelCategory category) => switch (category) {
-    AiModelCategory.image => 'Image Generation',
-    AiModelCategory.video => 'Video Generation',
-    AiModelCategory.upscale => 'Upscale',
-    AiModelCategory.avatar => 'Avatar Generation',
-    AiModelCategory.motion => 'Motion Control',
-  };
+  String _screenTitle(BuildContext context, AiModelCategory category) {
+    final l10n = context.l10n;
+    return switch (category) {
+      AiModelCategory.image => l10n.generatorTitleImage,
+      AiModelCategory.video => l10n.generatorTitleVideo,
+      AiModelCategory.upscale => l10n.generatorTitleUpscale,
+      AiModelCategory.avatar => l10n.generatorTitleAvatar,
+      AiModelCategory.motion => l10n.generatorTitleMotion,
+    };
+  }
 
-  String _promptHint(AiModelCategory category) => switch (category) {
-    AiModelCategory.image => 'Describe an image...',
-    AiModelCategory.video => 'Describe a video...',
-    AiModelCategory.upscale => 'Describe what to enhance...',
-    AiModelCategory.avatar => 'Describe an avatar...',
-    AiModelCategory.motion => 'Describe motion...',
-  };
+  String _promptHint(BuildContext context, AiModelCategory category) {
+    final l10n = context.l10n;
+    return switch (category) {
+      AiModelCategory.image => l10n.generatorHintImage,
+      AiModelCategory.video => l10n.generatorHintVideo,
+      AiModelCategory.upscale => l10n.generatorHintUpscale,
+      AiModelCategory.avatar => l10n.generatorHintAvatar,
+      AiModelCategory.motion => l10n.generatorHintMotion,
+    };
+  }
 
   void _openCompletedResult(
     BuildContext context,
@@ -495,6 +505,7 @@ class _FormatModelPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sortedModes = [...modes]..sort((a, b) => a.order.compareTo(b.order));
+    final l10n = context.l10n;
 
     return Container(
       width: double.infinity,
@@ -512,7 +523,7 @@ class _FormatModelPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _PanelEyebrow('ФОРМАТ'),
+          _PanelEyebrow(l10n.generatorFormatLabel),
           const SizedBox(height: 8),
           SizedBox(
             height: 40,
@@ -533,10 +544,10 @@ class _FormatModelPanel extends StatelessWidget {
           const SizedBox(height: 14),
           Row(
             children: [
-              const _PanelEyebrow('МОДЕЛИ'),
+              _PanelEyebrow(l10n.generatorModelsLabel),
               const Spacer(),
               Text(
-                _modelCountCopy(models.length),
+                l10n.generatorModelCount(models.length),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -828,15 +839,6 @@ _GeneratorModelMeta _generatorModelMeta(AiModel model) {
 
 String _generatorModelTitle(AiModel model) => _generatorModelMeta(model).title;
 
-String _modelCountCopy(int count) {
-  final word = count == 1
-      ? 'модель'
-      : count < 5
-      ? 'модели'
-      : 'моделей';
-  return '$count $word';
-}
-
 class _SuggestionRail extends StatelessWidget {
   const _SuggestionRail({required this.suggestions, required this.onSelected});
 
@@ -879,6 +881,8 @@ class _AddImageButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return SizedBox(
       height: 74,
       child: FilledButton(
@@ -891,17 +895,20 @@ class _AddImageButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
           ),
         ),
-        child: const FittedBox(
+        child: FittedBox(
           fit: BoxFit.scaleDown,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.add_photo_alternate_outlined, size: 26),
-              SizedBox(width: 8),
+              const Icon(Icons.add_photo_alternate_outlined, size: 26),
+              const SizedBox(width: 8),
               Text(
-                'Add image',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                l10n.generatorAddImage,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ],
           ),
@@ -924,6 +931,8 @@ class _GenerateButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return SizedBox(
       height: 74,
       child: FilledButton(
@@ -945,7 +954,7 @@ class _GenerateButton extends StatelessWidget {
                   color: Colors.black,
                 ),
               )
-            : const Text('Generate'),
+            : Text(l10n.generatorGenerate),
       ),
     );
   }
@@ -966,10 +975,14 @@ class _ComposerMeta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final copy =
         disabledReason ??
-        '${_generatorModelTitle(selectedModel)} · Cost ${formatCoins(generationCost)} coins'
-            '${availableCoins == null ? '' : ' · ${formatCoins(availableCoins!)} available'}';
+        l10n.generatorMetaCost(
+          _generatorModelTitle(selectedModel),
+          formatCoins(generationCost),
+          availableCoins == null ? '0' : formatCoins(availableCoins!),
+        );
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 160),
@@ -989,8 +1002,8 @@ class _ComposerMeta extends StatelessWidget {
   }
 }
 
-class _GenerationStatus extends StatelessWidget {
-  const _GenerationStatus({
+class _LocalizedGenerationStatus extends StatelessWidget {
+  const _LocalizedGenerationStatus({
     required this.state,
     required this.onOpenResult,
     required this.onRetry,
@@ -1006,6 +1019,7 @@ class _GenerationStatus extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final l10n = context.l10n;
     final response = state.asData?.value;
     final job = response?.job;
     final isFailed = job?.status == GenerationJobStatus.failed;
@@ -1028,7 +1042,10 @@ class _GenerationStatus extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (state.isLoading)
-            const _StatusRow(icon: Icons.auto_awesome, label: 'Generating...')
+            _StatusRow(
+              icon: Icons.auto_awesome,
+              label: l10n.generatorGenerating,
+            )
           else if (state.hasError)
             _StatusRow(
               icon: Icons.error_outline,
@@ -1051,9 +1068,9 @@ class _GenerationStatus extends StatelessWidget {
           ],
           if (isFailed && job != null) ...[
             const SizedBox(height: 10),
-            const Text(
-              'Генерация не завершилась. Настройки сохранены.',
-              style: TextStyle(
+            Text(
+              l10n.generatorFailedTitle,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
@@ -1062,8 +1079,8 @@ class _GenerationStatus extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               job.costCoins > 0
-                  ? 'Койны возвращены на баланс.'
-                  : 'Списание не выполнено.',
+                  ? l10n.generatorCoinsRefunded
+                  : l10n.generatorNoCharge,
               style: const TextStyle(
                 color: allAiMuted,
                 fontSize: 13,
@@ -1074,7 +1091,7 @@ class _GenerationStatus extends StatelessWidget {
             TextButton.icon(
               onPressed: () => onRetry(job),
               icon: const Icon(Icons.refresh),
-              label: const Text('Повторить'),
+              label: Text(l10n.commonRetry),
             ),
           ],
           if (isCompleted &&
@@ -1084,7 +1101,7 @@ class _GenerationStatus extends StatelessWidget {
             TextButton.icon(
               onPressed: () => onOpenResult(response),
               icon: const Icon(Icons.open_in_new),
-              label: const Text('Open result'),
+              label: Text(l10n.generatorOpenResult),
             ),
           ],
         ],
@@ -1179,7 +1196,10 @@ class _ComposerError extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          FilledButton(onPressed: onRetry, child: const Text('Try again')),
+          FilledButton(
+            onPressed: onRetry,
+            child: Text(context.l10n.commonTryAgain),
+          ),
         ],
       ),
     );

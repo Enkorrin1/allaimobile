@@ -205,8 +205,8 @@ void main() {
     expect(find.text('Describe a video...'), findsOneWidget);
     expect(find.text('Add image'), findsOneWidget);
     expect(find.text('Generate'), findsOneWidget);
-    expect(find.text('ФОРМАТ'), findsOneWidget);
-    expect(find.text('МОДЕЛИ'), findsOneWidget);
+    expect(find.text('FORMAT'), findsOneWidget);
+    expect(find.text('MODELS'), findsOneWidget);
     expect(find.text('Kling'), findsOneWidget);
     expect(find.text('Home'), findsNothing);
   });
@@ -258,11 +258,11 @@ void main() {
     await pumpRoute(tester);
 
     expect(
-      find.text('Генерация не завершилась. Настройки сохранены.'),
+      find.text('Generation did not finish. Settings were saved.'),
       findsOneWidget,
     );
-    expect(find.text('Койны возвращены на баланс.'), findsOneWidget);
-    expect(find.text('Повторить'), findsOneWidget);
+    expect(find.text('Coins were returned to your balance.'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
   });
 
   testWidgets('Create can run mock job and open result viewer', (tester) async {

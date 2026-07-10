@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_spacing.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_text_field.dart';
@@ -31,9 +32,10 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final auth = ref.watch(authControllerProvider);
+    final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Восстановить доступ')),
+      appBar: AppBar(title: Text(l10n.authResetTitle)),
       body: SafeArea(
         child: ListView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -44,10 +46,10 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
             AppSpacing.lg + MediaQuery.viewInsetsOf(context).bottom,
           ),
           children: [
-            Text('Восстановить доступ', style: theme.textTheme.headlineSmall),
+            Text(l10n.authResetTitle, style: theme.textTheme.headlineSmall),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'Укажите email. В демо-режиме мы покажем безопасное подтверждение без отправки письма.',
+              l10n.authResetSubtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -58,7 +60,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
               child: AppTextField(
                 key: const Key('reset-email-field'),
                 controller: _emailController,
-                label: 'Email',
+                label: l10n.authEmailLabel,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.done,
                 errorText: _emailError,
@@ -73,7 +75,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                 color: theme.colorScheme.primaryContainer,
                 borderColor: Colors.transparent,
                 child: Text(
-                  'Если аккаунт существует, запрос принят в демо-режиме',
+                  l10n.authResetSuccess,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onPrimaryContainer,
                   ),
@@ -95,7 +97,9 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
             ],
             const SizedBox(height: AppSpacing.lg),
             AppButton(
-              label: auth.isSubmitting ? 'Проверяем...' : 'Продолжить',
+              label: auth.isSubmitting
+                  ? l10n.authResetSubmitting
+                  : l10n.authResetButton,
               icon: Icons.mark_email_read_outlined,
               fullWidth: true,
               onPressed: auth.isSubmitting ? null : _submit,
@@ -103,7 +107,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
             const SizedBox(height: AppSpacing.sm),
             TextButton(
               onPressed: () => context.go(AppRoutes.login),
-              child: const Text('Вернуться ко входу'),
+              child: Text(l10n.authBackToLogin),
             ),
           ],
         ),
@@ -122,9 +126,9 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
     final email = _emailController.text.trim();
     String? emailError;
     if (email.isEmpty) {
-      emailError = 'Введите email';
+      emailError = context.l10n.authEmailRequired;
     } else if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
-      emailError = 'Введите корректный email';
+      emailError = context.l10n.authEmailInvalid;
     }
 
     setState(() => _emailError = emailError);

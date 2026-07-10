@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/placeholder_card.dart';
 import '../../../../shared/widgets/status_chip.dart';
@@ -10,9 +11,10 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Настройки')),
+      appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
@@ -22,28 +24,28 @@ class SettingsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Wrap(
+                  Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
                       StatusChip(
-                        label: 'Локальная сборка',
+                        label: l10n.settingsLocalBuild,
                         icon: Icons.settings_outlined,
                       ),
                       StatusChip(
-                        label: 'Без живых платежей',
+                        label: l10n.settingsDemoBilling,
                         icon: Icons.lock_outline,
                       ),
                     ],
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    'Настройки приложения',
+                    l10n.settingsAppTitle,
                     style: theme.textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Здесь собраны параметры, которые не влияют на генерацию и платежи в демо-сборке.',
+                    l10n.settingsAppDescription,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -52,39 +54,34 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            const PlaceholderCard(
+            PlaceholderCard(
               icon: Icons.language_outlined,
-              title: 'Язык',
-              description:
-                  'Интерфейс сейчас подготовлен для русского языка. Переключение языков появится позже.',
+              title: l10n.settingsLanguageTitle,
+              description: l10n.settingsLanguageDescription,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.notifications_outlined,
-              title: 'Уведомления',
-              description:
-                  'Уведомления о готовности генерации появятся после отдельного разрешения и настройки устройства.',
+              title: l10n.settingsNotificationsTitle,
+              description: l10n.settingsNotificationsDescription,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.policy_outlined,
-              title: 'Юридические документы',
-              description:
-                  'Условия использования, политика конфиденциальности и правила AI-контента будут подключены перед релизом.',
+              title: l10n.settingsLegalTitle,
+              description: l10n.settingsLegalDescription,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.support_agent_outlined,
-              title: 'Поддержка',
-              description:
-                  'Помощь по генерациям, балансу и аккаунту появится после подготовки канала поддержки.',
+              title: l10n.settingsSupportTitle,
+              description: l10n.settingsSupportDescription,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             PlaceholderCard(
               icon: Icons.delete_outline,
-              title: 'Удалить аккаунт',
-              description:
-                  'Удаление аккаунта появится после готового безопасного процесса подтверждения.',
+              title: l10n.settingsDeleteAccountTitle,
+              description: l10n.settingsDeleteAccountDescription,
             ),
           ],
         ),

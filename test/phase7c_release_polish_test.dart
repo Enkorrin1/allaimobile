@@ -70,14 +70,14 @@ void main() {
   ) async {
     await pumpPhase7CApp(tester);
 
-    expect(find.text('Профиль'), findsWidgets);
+    expect(find.text('Profile'), findsWidgets);
     expect(find.text('Демо-креатор'), findsOneWidget);
-    expect(find.text('Сессия активна'), findsOneWidget);
-    expect(find.text('Койны и баланс'), findsOneWidget);
-    await scrollUntilVisible(tester, find.text('Настройки'));
-    expect(find.text('Настройки'), findsOneWidget);
-    await scrollUntilVisible(tester, find.text('Выйти'));
-    expect(find.widgetWithText(OutlinedButton, 'Выйти'), findsOneWidget);
+    expect(find.text('Session active'), findsOneWidget);
+    expect(find.text('Coins and balance'), findsOneWidget);
+    await scrollUntilVisible(tester, find.text('Settings'));
+    expect(find.text('Settings'), findsOneWidget);
+    await scrollUntilVisible(tester, find.text('Log out'));
+    expect(find.widgetWithText(OutlinedButton, 'Log out'), findsOneWidget);
   });
 
   testWidgets('Phase 7C Pricing keeps demo billing honest', (tester) async {
@@ -96,9 +96,9 @@ void main() {
   ) async {
     await pumpPhase7CApp(tester, initialLocation: AppRoutes.settings);
 
-    expect(find.text('Настройки приложения'), findsOneWidget);
-    expect(find.text('Без живых платежей'), findsOneWidget);
-    expect(find.text('Юридические документы'), findsOneWidget);
+    expect(find.text('App settings'), findsOneWidget);
+    expect(find.text('No live payments'), findsOneWidget);
+    expect(find.text('Legal documents'), findsOneWidget);
     expect(find.textContaining('backend'), findsNothing);
     expect(find.textContaining('job'), findsNothing);
     expect(find.textContaining('contracts'), findsNothing);

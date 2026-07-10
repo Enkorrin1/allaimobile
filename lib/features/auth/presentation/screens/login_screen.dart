@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_spacing.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_text_field.dart';
@@ -34,9 +35,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final auth = ref.watch(authControllerProvider);
+    final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Вход')),
+      appBar: AppBar(title: Text(l10n.authLoginTitle)),
       body: SafeArea(
         child: ListView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -47,10 +49,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             AppSpacing.lg + MediaQuery.viewInsetsOf(context).bottom,
           ),
           children: [
-            Text('С возвращением', style: theme.textTheme.headlineSmall),
+            Text(l10n.authLoginHeadline, style: theme.textTheme.headlineSmall),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'Войдите в демо-аккаунт, чтобы открыть генератор, библиотеку и баланс койнов.',
+              l10n.authLoginSubtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -63,8 +65,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   AppTextField(
                     key: const Key('login-email-field'),
                     controller: _emailController,
-                    label: 'Email',
-                    hintText: 'creator@allai.market',
+                    label: l10n.authEmailLabel,
+                    hintText: l10n.authEmailHint,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     errorText: _emailError,
@@ -76,8 +78,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   AppTextField(
                     key: const Key('login-password-field'),
                     controller: _passwordController,
-                    label: 'Пароль',
-                    hintText: 'Пароль',
+                    label: l10n.authPasswordLabel,
+                    hintText: l10n.authPasswordHint,
                     obscureText: _obscurePassword,
                     textInputAction: TextInputAction.done,
                     errorText: _passwordError,
@@ -86,8 +88,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     autofillHints: const [AutofillHints.password],
                     suffixIcon: IconButton(
                       tooltip: _obscurePassword
-                          ? 'Показать пароль'
-                          : 'Скрыть пароль',
+                          ? l10n.authShowPassword
+                          : l10n.authHidePassword,
                       onPressed: () {
                         setState(() => _obscurePassword = !_obscurePassword);
                       },
@@ -116,14 +118,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ],
             const SizedBox(height: AppSpacing.lg),
             AppButton(
-              label: auth.isSubmitting ? 'Входим...' : 'Войти',
+              label: auth.isSubmitting
+                  ? l10n.authLoginSubmitting
+                  : l10n.authLoginButton,
               icon: Icons.login,
               fullWidth: true,
               onPressed: auth.isSubmitting ? null : _submit,
             ),
             const SizedBox(height: AppSpacing.sm),
             AppButton(
-              label: 'Забыли пароль?',
+              label: l10n.authForgotPassword,
               icon: Icons.help_outline,
               secondary: true,
               fullWidth: true,
@@ -132,7 +136,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             const SizedBox(height: AppSpacing.sm),
             TextButton(
               onPressed: () => context.go(AppRoutes.register),
-              child: const Text('Создать аккаунт'),
+              child: Text(l10n.authCreateAccount),
             ),
           ],
         ),
@@ -158,12 +162,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     String? passwordError;
 
     if (email.isEmpty) {
-      emailError = 'Введите email';
+      emailError = context.l10n.authEmailRequired;
     } else if (!_looksLikeEmail(email)) {
-      emailError = 'Введите корректный email';
+      emailError = context.l10n.authEmailInvalid;
     }
     if (password.isEmpty) {
-      passwordError = 'Введите пароль';
+      passwordError = context.l10n.authPasswordRequired;
     }
 
     setState(() {

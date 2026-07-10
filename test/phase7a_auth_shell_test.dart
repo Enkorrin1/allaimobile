@@ -90,15 +90,15 @@ void main() {
 
     await tester.tap(find.text('I already have an account'));
     await pumpRoute(tester);
-    expect(find.text('Вход'), findsOneWidget);
+    expect(find.text('Sign in'), findsWidgets);
 
     await tester.enterText(find.byType(TextField).at(0), '');
     await tester.enterText(find.byType(TextField).at(1), '');
-    await tester.tap(find.widgetWithText(FilledButton, 'Войти'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await pumpRoute(tester);
 
-    expect(find.text('Введите email'), findsOneWidget);
-    expect(find.text('Введите пароль'), findsOneWidget);
+    expect(find.text('Enter email'), findsOneWidget);
+    expect(find.text('Enter password'), findsOneWidget);
     expect(await harness.storage.read(AuthSessionStore.sessionKey), isNull);
   });
 
@@ -108,12 +108,12 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
     await pumpRoute(tester);
 
-    expect(find.text('Создать аккаунт'), findsWidgets);
+    expect(find.text('Create account'), findsWidgets);
     expect(find.byKey(const Key('register-terms-checkbox')), findsOneWidget);
     expect(find.byKey(const Key('register-privacy-checkbox')), findsOneWidget);
     expect(find.byKey(const Key('register-age-checkbox')), findsOneWidget);
 
-    final submit = find.widgetWithText(FilledButton, 'Создать аккаунт');
+    final submit = find.widgetWithText(FilledButton, 'Create account');
     await scrollUntilVisible(tester, submit);
     expect(tester.widget<FilledButton>(submit.last).onPressed, isNull);
   });
@@ -123,19 +123,21 @@ void main() {
 
     await tester.tap(find.text('I already have an account'));
     await pumpRoute(tester);
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Забыли пароль?'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Forgot password?'));
     await pumpRoute(tester);
 
-    expect(find.text('Восстановить доступ'), findsWidgets);
+    expect(find.text('Restore access'), findsWidgets);
     await tester.enterText(
       find.byType(TextField).first,
       'creator@allai.market',
     );
-    await tester.tap(find.widgetWithText(FilledButton, 'Продолжить'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
     await pumpRoute(tester);
 
     expect(
-      find.text('Если аккаунт существует, запрос принят в демо-режиме'),
+      find.text(
+        'If the account exists, the request was accepted in demo mode.',
+      ),
       findsOneWidget,
     );
   });
