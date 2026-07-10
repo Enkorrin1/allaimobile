@@ -25,7 +25,7 @@ The first device preview showed that the app launches and works, but the Welcome
 - `AppTheme` refinement: color, typography, spacing, radii and state colors.
 - Shared widgets: buttons, cards, chips, text fields, status/empty/loading/error states and media preview surfaces where needed for auth/shell.
 - App shell: bottom navigation state, spacing, labels/icons and small-screen tap targets.
-- Welcome screen: product-like first screen with AllAI creative-studio framing and clear auth CTAs.
+- Welcome screen: product-like first screen with AllAi creative-studio framing and clear auth CTAs.
 - Login/Register/Password Reset: compact, keyboard-safe, polished forms with clear validation and legal/18+ copy.
 - Widget tests for existing auth/navigation behavior where affected.
 

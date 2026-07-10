@@ -12,7 +12,7 @@ Status: baseline captured on physical Android device. No app-code changes, stagi
 - Android: detected by Flutter earlier as Android 9 / API 28.
 - Physical size: `720x1520`.
 - Physical density: `320`.
-- Current focused activity: `com.allai.allai_mobile/.MainActivity`.
+- Current focused activity: `com.allai.mobile/.MainActivity`.
 
 ## Captured Screenshots
 
@@ -28,7 +28,7 @@ Screenshots are stored under `build/` and must not be staged.
 
 Welcome baseline:
 
-- The app launches and shows the AllAI signed-out entry.
+- The app launches and shows the AllAi signed-out entry.
 - The screen feels sparse and unfinished, which is the core Phase 7A first-impression problem.
 
 Signed-in shell baseline:

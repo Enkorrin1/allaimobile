@@ -142,7 +142,7 @@ Asset _asset(String id) {
 
 const _model = AiModel(
   id: 'photo-studio',
-  name: 'AllAI Photo Studio',
+  name: 'NanoBanana',
   category: AiModelCategory.image,
   description: 'Prompt image generation',
   supportedInputs: [SupportedInput.prompt],

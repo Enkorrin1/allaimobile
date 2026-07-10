@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,21 +11,15 @@ import '../../../../features/generation_jobs/presentation/providers/generation_j
 import '../../../../features/tools/domain/catalog_models.dart';
 import '../../../../features/tools/presentation/providers/catalog_providers.dart';
 import '../../../../features/tools/presentation/view_models/catalog_ui_mappers.dart';
-import '../../../../shared/widgets/app_button.dart';
-import '../../../../shared/widgets/app_card.dart';
-import '../../../../shared/widgets/app_text_field.dart';
-import '../../../../shared/widgets/cost_preview_card.dart';
-import '../../../../shared/widgets/error_state.dart';
-import '../../../../shared/widgets/generation_mode_selector.dart';
-import '../../../../shared/widgets/loading_state.dart';
-import '../../../../shared/widgets/model_card.dart';
-import '../../../../shared/widgets/section_header.dart';
-import '../../../../shared/widgets/status_chip.dart';
-import '../../../../shared/widgets/template_card.dart';
-import '../../../../shared/widgets/upload_placeholder.dart';
+import '../../../../shared/widgets/neon_media_card.dart';
 
 class GeneratorScreen extends ConsumerStatefulWidget {
-  const GeneratorScreen({super.key});
+  const GeneratorScreen({
+    this.initialCategory = AiModelCategory.video,
+    super.key,
+  });
+
+  final AiModelCategory initialCategory;
 
   @override
   ConsumerState<GeneratorScreen> createState() => _GeneratorScreenState();
@@ -32,14 +27,22 @@ class GeneratorScreen extends ConsumerStatefulWidget {
 
 class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
   final _promptController = TextEditingController();
-  String? _selectedModeId;
   String _prompt = '';
-  String? _promptError;
   bool _restoreRequested = false;
+  AiModelCategory _selectedCategory = AiModelCategory.video;
+  String? _selectedModelId;
+
+  static const _suggestions = [
+    'Futuristic walk of her',
+    'Majestic baby tiger walk',
+    'Tiny dragon flying',
+    'Cinematic product reveal',
+  ];
 
   @override
   void initState() {
     super.initState();
+    _selectedCategory = widget.initialCategory;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _restoreRequested) return;
       _restoreRequested = true;
@@ -50,6 +53,17 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant GeneratorScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialCategory != widget.initialCategory) {
+      setState(() {
+        _selectedCategory = widget.initialCategory;
+        _selectedModelId = null;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _promptController.dispose();
     super.dispose();
@@ -57,275 +71,116 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final catalogAsync = ref.watch(catalogStateProvider);
     final balanceAsync = ref.watch(balanceStateProvider);
     final jobState = ref.watch(generationJobControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Создать'),
-        actions: [
-          IconButton(
-            tooltip: 'Открыть инструменты',
-            onPressed: () => context.push(AppRoutes.tools),
-            icon: const Icon(Icons.widgets_outlined),
-          ),
-        ],
-      ),
+      backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: catalogAsync.when(
-          loading: () => const LoadingState(label: 'Загружаем форму'),
-          error: (error, stackTrace) => ErrorState(
-            title: 'Форма недоступна',
-            description: 'Не удалось загрузить каталог для создания.',
+          loading: () => const _ComposerLoading(),
+          error: (error, stackTrace) => _ComposerError(
+            title: 'Generator unavailable',
+            description: 'Could not load creation tools. Try again.',
             onRetry: () => ref.invalidate(catalogStateProvider),
           ),
           data: (state) {
             final catalog = state.catalog;
-            final imageModes = catalog.modes
-                .where(
-                  (mode) =>
-                      mode.isEnabled && mode.category == AiModelCategory.image,
-                )
-                .toList();
-            final imageModels = catalog.models.where(_isImageCapable).toList();
-            final availableImageModels = imageModels
-                .where((model) => model.isAvailable)
-                .toList();
+            final visibleModels = _modelsForCategory(
+              catalog,
+              _selectedCategory,
+            );
+            final selectedModel = _selectedModel(visibleModels);
 
-            if (imageModes.isEmpty || availableImageModels.isEmpty) {
-              return ErrorState(
-                title: 'Нет доступных моделей для фото',
+            if (selectedModel == null) {
+              return _ComposerError(
+                title: 'No generator available',
                 description:
-                    'Модели появятся после обновления каталога. Попробуйте позже.',
+                    'Creation models will appear after catalog update.',
                 onRetry: () => ref.invalidate(catalogStateProvider),
               );
             }
 
-            final selectedModeId =
-                imageModes.any((mode) => mode.id == _selectedModeId)
-                ? _selectedModeId!
-                : imageModes.first.id;
-            final selectedMode = imageModes.firstWhere(
-              (mode) => mode.id == selectedModeId,
-            );
-            final selectedModel = _selectModelForMode(catalog, selectedMode);
-            final selectedTemplates = selectedModel == null
-                ? <Template>[]
-                : _templatesForModel(catalog, selectedModel);
-            final selectedTemplate = selectedTemplates.isEmpty
-                ? null
-                : selectedTemplates.first;
-            final balance = balanceAsync.asData?.value.data;
-            final availableCoins = balance?.availableCoins;
-            final generationCost = selectedModel?.cost.minCoins ?? 0;
+            final selectedTemplate = _templateForModel(catalog, selectedModel);
+            final generationCost = selectedModel.cost.minCoins;
+            final availableCoins =
+                balanceAsync.asData?.value.data.availableCoins;
             final disabledReason = _disabledReason(
               model: selectedModel,
-              template: selectedTemplate,
               generationCost: generationCost,
               availableCoins: availableCoins,
               balanceIsLoading: balanceAsync.isLoading,
               prompt: _prompt,
             );
             final canSubmit = !jobState.isLoading && disabledReason == null;
-            final aspectRatio =
-                selectedTemplate?.targetAspectRatio ??
-                selectedModel?.capabilities.aspectRatios?.first ??
-                '9:16';
-            final modeOptions = imageModes
-                .map(
-                  (mode) => GenerationModeOption(
-                    id: mode.id,
-                    label: mode.title,
-                    icon: modelCategoryIcon(mode.category),
-                    description: 'Только описание',
-                  ),
-                )
-                .toList();
 
-            return ListView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: EdgeInsets.fromLTRB(
-                16,
-                12,
-                16,
-                24 + MediaQuery.viewInsetsOf(context).bottom,
-              ),
-              children: [
-                if (state.isFromCache) ...[
-                  const StatusChip(
-                    label: 'Показываем сохранённые данные',
-                    icon: Icons.offline_pin_outlined,
+            return _VideoComposer(
+              controller: _promptController,
+              prompt: _prompt,
+              modes: catalog.modes,
+              selectedCategory: _selectedCategory,
+              models: visibleModels,
+              selectedModel: selectedModel,
+              suggestions: _suggestions,
+              disabledReason: disabledReason,
+              showDisabledReason:
+                  _prompt.trim().isNotEmpty || disabledReason == null,
+              jobState: jobState,
+              availableCoins: availableCoins,
+              generationCost: generationCost,
+              canSubmit: canSubmit,
+              onClose: () => context.go(AppRoutes.home),
+              onCategorySelected: (category) {
+                setState(() {
+                  _selectedCategory = category;
+                  _selectedModelId = null;
+                });
+              },
+              onModelSelected: (model) {
+                setState(() => _selectedModelId = model.id);
+              },
+              onPromptChanged: (value) => setState(() => _prompt = value),
+              onSuggestionSelected: (suggestion) {
+                _promptController.text = suggestion;
+                _promptController.selection = TextSelection.collapsed(
+                  offset: suggestion.length,
+                );
+                setState(() => _prompt = suggestion);
+              },
+              onAddImage: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Image upload will be connected later.'),
                   ),
-                  const SizedBox(height: 12),
-                ],
-                _CreateHeader(
-                  availableCoins: availableCoins,
-                  selectedModelName: selectedModel?.name ?? 'модель недоступна',
-                  selectedTemplateTitle: selectedTemplate?.title,
-                ),
-                const SizedBox(height: 18),
-                const SectionHeader(title: 'Формат'),
-                const SizedBox(height: 8),
-                GenerationModeSelector(
-                  options: modeOptions,
-                  selectedId: selectedModeId,
-                  onSelected: (id) => setState(() => _selectedModeId = id),
-                ),
-                const SizedBox(height: 18),
-                const SectionHeader(title: 'Описание'),
-                const SizedBox(height: 8),
-                AppTextField(
-                  label: 'Промпт',
-                  hintText:
-                      'Например: чистый рекламный кадр продукта на светлом фоне, мягкий свет, формат 4:5.',
-                  controller: _promptController,
-                  minLines: 4,
-                  maxLines: 6,
-                  textInputAction: TextInputAction.newline,
-                  errorText: _promptError,
-                  prefixIcon: const Icon(Icons.edit_outlined),
-                  onChanged: (value) {
-                    setState(() {
-                      _prompt = value;
-                      if (_promptError != null) _promptError = null;
-                    });
-                  },
-                ),
-                const SizedBox(height: 12),
-                const UploadPlaceholder(
-                  title: 'Референс-изображение',
-                  description:
-                      'Загрузка изображения появится в следующем обновлении. Сейчас доступна генерация по описанию.',
-                ),
-                const SizedBox(height: 20),
-                SectionHeader(
-                  title: 'Модель',
-                  actionLabel: 'Инструменты',
-                  onActionPressed: () => context.push(AppRoutes.tools),
-                ),
-                const SizedBox(height: 8),
-                if (selectedModel != null)
-                  ModelCard(
-                    name: selectedModel.name,
-                    category: modelCategoryLabel(selectedModel.category),
-                    description: selectedModel.description,
-                    costLabel: costLabel(selectedModel.cost),
-                    icon: modelCategoryIcon(selectedModel.category),
-                    accentColor: modelCategoryColor(selectedModel.category),
-                    available: selectedModel.isAvailable,
-                    availabilityLabel: modelAvailabilityLabel(selectedModel),
-                    availabilityDescription: selectedModel.isAvailable
-                        ? null
-                        : modelAvailabilityDescription(selectedModel),
-                    onTap: () =>
-                        context.push(AppRoutes.toolDetail(selectedModel.id)),
-                  ),
-                const SizedBox(height: 16),
-                const SectionHeader(title: 'Стартовый шаблон'),
-                const SizedBox(height: 8),
-                if (selectedTemplates.isEmpty)
-                  const AppCard(
-                    child: Text(
-                      'Для выбранной модели пока нет доступного фото-шаблона.',
-                    ),
-                  )
-                else
-                  for (final template in selectedTemplates.take(2)) ...[
-                    TemplateCard(
-                      title: template.title,
-                      badge: templateAvailabilityLabel(template),
-                      description: template.description,
-                      costLabel: costLabel(selectedModel!.cost),
-                      icon: templateIcon(template.category),
-                      accentColor: templateColor(template.category),
-                      onTap: () =>
-                          context.push(AppRoutes.templateDetail(template.id)),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                const SizedBox(height: 8),
-                const SectionHeader(title: 'Настройки'),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    StatusChip(label: 'Формат $aspectRatio', icon: Icons.tune),
-                    const StatusChip(
-                      label: 'По описанию',
-                      icon: Icons.edit_outlined,
-                    ),
-                    const StatusChip(
-                      label: 'Референс скоро',
-                      icon: Icons.lock_outline,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                CostPreviewCard(
-                  costLabel: 'Стоимость: ${formatCoins(generationCost)} койнов',
-                  reserveCopy:
-                      'Доступно: ${availableCoins == null ? 'загружаем баланс' : formatCoins(availableCoins)}. $billingReserveCopy',
-                  warning: disabledReason,
-                ),
-                if (_promptError != null) ...[
-                  const SizedBox(height: 12),
-                  AppCard(
-                    child: Text(
-                      _promptError!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.error,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 16),
-                _JobStateCard(
-                  state: jobState,
-                  onOpenResult: (response) => _openResult(context, response),
-                  onRetry: (job) async {
-                    final response = await ref
-                        .read(generationJobControllerProvider.notifier)
-                        .retryJob(job);
-                    if (!context.mounted || response == null) return;
-                    _openResult(context, response);
-                  },
-                ),
-                const SizedBox(height: 20),
-                AppButton(
-                  label: jobState.isLoading
-                      ? 'Создаём задачу'
-                      : 'Запустить генерацию',
-                  icon: Icons.auto_awesome,
-                  fullWidth: true,
-                  onPressed: canSubmit
-                      ? () async {
-                          final prompt = _promptController.text.trim();
-                          if (prompt.isEmpty) {
-                            setState(
-                              () => _promptError =
-                                  'Добавьте описание изображения',
-                            );
-                            return;
-                          }
+                );
+              },
+              onRetry: (job) async {
+                final response = await ref
+                    .read(generationJobControllerProvider.notifier)
+                    .retryJob(job);
+                if (!context.mounted || response == null) return;
+                _openResult(context, response);
+              },
+              onGenerate: canSubmit
+                  ? () async {
+                      final prompt = _promptController.text.trim();
+                      if (prompt.isEmpty) return;
 
-                          final response = await ref
-                              .read(generationJobControllerProvider.notifier)
-                              .createPromptOnlyJob(
-                                modelId: selectedModel!.id,
-                                templateId: selectedTemplate?.id,
-                                prompt: prompt,
-                                settings: {'aspectRatio': aspectRatio},
-                              );
-                          if (!context.mounted || response == null) return;
-                          _openResult(context, response);
-                        }
-                      : null,
-                ),
-              ],
+                      final response = await ref
+                          .read(generationJobControllerProvider.notifier)
+                          .createPromptOnlyJob(
+                            modelId: selectedModel.id,
+                            templateId: selectedTemplate?.id,
+                            prompt: prompt,
+                            settings: const {'aspectRatio': '9:16'},
+                          );
+
+                      if (!context.mounted || response == null) return;
+                      _openResult(context, response);
+                    }
+                  : null,
             );
           },
         ),
@@ -333,49 +188,50 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
     );
   }
 
-  AiModel? _selectModelForMode(CatalogResponse catalog, GenerationMode mode) {
-    final matchingModels = catalog.models.where(
-      (model) => model.category == mode.category && _isImageCapable(model),
-    );
-    final available = matchingModels.where((model) => model.isAvailable);
-    if (available.isNotEmpty) return available.first;
-    return matchingModels.isEmpty ? null : matchingModels.first;
+  List<AiModel> _modelsForCategory(
+    CatalogResponse catalog,
+    AiModelCategory category,
+  ) {
+    return catalog.models.where((model) => model.category == category).toList();
   }
 
-  List<Template> _templatesForModel(CatalogResponse catalog, AiModel model) {
-    return catalog.templates
+  AiModel? _selectedModel(List<AiModel> models) {
+    if (models.isEmpty) return null;
+    if (_selectedModelId == null) return models.first;
+    return models.firstWhere(
+      (model) => model.id == _selectedModelId,
+      orElse: () => models.first,
+    );
+  }
+
+  Template? _templateForModel(CatalogResponse catalog, AiModel model) {
+    final outputFormat = model.supportedOutputs.contains(SupportedOutput.video)
+        ? OutputFormat.video
+        : OutputFormat.image;
+    final templates = catalog.templates
         .where(
           (template) =>
               template.defaultModelId == model.id &&
               template.isAvailable &&
-              template.outputFormat == OutputFormat.image,
+              template.outputFormat == outputFormat,
         )
         .toList();
-  }
-
-  bool _isImageCapable(AiModel model) {
-    return model.supportedOutputs.contains(SupportedOutput.image) &&
-        model.category == AiModelCategory.image;
+    return templates.isEmpty ? null : templates.first;
   }
 
   String? _disabledReason({
-    required AiModel? model,
-    required Template? template,
+    required AiModel model,
     required int generationCost,
     required int? availableCoins,
     required bool balanceIsLoading,
     required String prompt,
   }) {
-    if (prompt.trim().isEmpty) return 'Добавьте описание изображения';
-    if (model == null) return 'Нет доступной модели для изображения.';
+    if (prompt.trim().isEmpty) return _emptyPromptCopy(model.category);
     if (!model.isAvailable) return modelAvailabilityDescription(model);
-    if (template == null) {
-      return 'Для выбранной модели пока нет доступного фото-шаблона.';
-    }
     if (availableCoins == null) {
       return balanceIsLoading
-          ? 'Загружаем баланс.'
-          : 'Баланс временно недоступен.';
+          ? 'Loading balance...'
+          : 'Balance is temporarily unavailable.';
     }
     if (generationCost > availableCoins) {
       return insufficientCoinsQuoteCopy(
@@ -386,6 +242,14 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
     return null;
   }
 
+  String _emptyPromptCopy(AiModelCategory category) => switch (category) {
+    AiModelCategory.image => 'Describe an image to generate.',
+    AiModelCategory.video => 'Describe a video to generate.',
+    AiModelCategory.upscale => 'Describe what needs better quality.',
+    AiModelCategory.avatar => 'Describe the avatar scene.',
+    AiModelCategory.motion => 'Describe the motion you want.',
+  };
+
   void _openResult(BuildContext context, GenerationJobResponse response) {
     if (response.job.status != GenerationJobStatus.completed ||
         response.assets.isEmpty) {
@@ -395,50 +259,309 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
   }
 }
 
-class _CreateHeader extends StatelessWidget {
-  const _CreateHeader({
+class _VideoComposer extends StatelessWidget {
+  const _VideoComposer({
+    required this.controller,
+    required this.prompt,
+    required this.modes,
+    required this.selectedCategory,
+    required this.models,
+    required this.selectedModel,
+    required this.suggestions,
+    required this.disabledReason,
+    required this.showDisabledReason,
+    required this.jobState,
     required this.availableCoins,
-    required this.selectedModelName,
-    this.selectedTemplateTitle,
+    required this.generationCost,
+    required this.canSubmit,
+    required this.onClose,
+    required this.onCategorySelected,
+    required this.onModelSelected,
+    required this.onPromptChanged,
+    required this.onSuggestionSelected,
+    required this.onAddImage,
+    required this.onRetry,
+    required this.onGenerate,
   });
 
+  final TextEditingController controller;
+  final String prompt;
+  final List<GenerationMode> modes;
+  final AiModelCategory selectedCategory;
+  final List<AiModel> models;
+  final AiModel selectedModel;
+  final List<String> suggestions;
+  final String? disabledReason;
+  final bool showDisabledReason;
+  final AsyncValue<GenerationJobResponse?> jobState;
   final int? availableCoins;
-  final String selectedModelName;
-  final String? selectedTemplateTitle;
+  final int generationCost;
+  final bool canSubmit;
+  final VoidCallback onClose;
+  final ValueChanged<AiModelCategory> onCategorySelected;
+  final ValueChanged<AiModel> onModelSelected;
+  final ValueChanged<String> onPromptChanged;
+  final ValueChanged<String> onSuggestionSelected;
+  final VoidCallback onAddImage;
+  final ValueChanged<GenerationJob> onRetry;
+  final VoidCallback? onGenerate;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
-    return AppCard(
-      color: colorScheme.surface,
-      borderColor: colorScheme.primary.withValues(alpha: 0.24),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 16, 22, 0),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 48,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints.tightFor(
+                      width: 48,
+                      height: 46,
+                    ),
+                    onPressed: onClose,
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                    tooltip: 'Close',
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    _screenTitle(selectedCategory),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 48),
+            ],
+          ),
+        ),
+        Expanded(
+          child: AnimatedPadding(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.only(bottom: bottomInset),
+            child: ListView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.fromLTRB(22, 12, 22, 18),
+              children: [
+                const SizedBox(height: 26),
+                SizedBox(
+                  height: 204,
+                  child: TextField(
+                    controller: controller,
+                    autofocus: false,
+                    expands: true,
+                    maxLines: null,
+                    minLines: null,
+                    keyboardAppearance: Brightness.dark,
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                    cursorColor: allAiNeon,
+                    onChanged: onPromptChanged,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 27,
+                      fontWeight: FontWeight.w500,
+                      height: 1.18,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: _promptHint(selectedCategory),
+                      hintStyle: const TextStyle(
+                        color: Color(0xFF88888D),
+                        fontSize: 27,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      filled: false,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _SuggestionRail(
+                  suggestions: suggestions,
+                  onSelected: onSuggestionSelected,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(child: _AddImageButton(onPressed: onAddImage)),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: _GenerateButton(
+                        enabled: canSubmit,
+                        loading: jobState.isLoading,
+                        onPressed: onGenerate,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                _ComposerMeta(
+                  selectedModel: selectedModel,
+                  availableCoins: availableCoins,
+                  generationCost: generationCost,
+                  disabledReason: showDisabledReason ? disabledReason : null,
+                ),
+                _GenerationStatus(
+                  state: jobState,
+                  onOpenResult: (response) =>
+                      _openCompletedResult(context, response),
+                  onRetry: onRetry,
+                ),
+                const SizedBox(height: 16),
+                _FormatModelPanel(
+                  modes: modes,
+                  selectedCategory: selectedCategory,
+                  models: models,
+                  selectedModelId: selectedModel.id,
+                  onCategorySelected: onCategorySelected,
+                  onModelSelected: onModelSelected,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _screenTitle(AiModelCategory category) => switch (category) {
+    AiModelCategory.image => 'Image Generation',
+    AiModelCategory.video => 'Video Generation',
+    AiModelCategory.upscale => 'Upscale',
+    AiModelCategory.avatar => 'Avatar Generation',
+    AiModelCategory.motion => 'Motion Control',
+  };
+
+  String _promptHint(AiModelCategory category) => switch (category) {
+    AiModelCategory.image => 'Describe an image...',
+    AiModelCategory.video => 'Describe a video...',
+    AiModelCategory.upscale => 'Describe what to enhance...',
+    AiModelCategory.avatar => 'Describe an avatar...',
+    AiModelCategory.motion => 'Describe motion...',
+  };
+
+  void _openCompletedResult(
+    BuildContext context,
+    GenerationJobResponse response,
+  ) {
+    if (response.job.status != GenerationJobStatus.completed ||
+        response.assets.isEmpty) {
+      return;
+    }
+    context.push(AppRoutes.result(response.assets.first.id));
+  }
+}
+
+class _FormatModelPanel extends StatelessWidget {
+  const _FormatModelPanel({
+    required this.modes,
+    required this.selectedCategory,
+    required this.models,
+    required this.selectedModelId,
+    required this.onCategorySelected,
+    required this.onModelSelected,
+  });
+
+  final List<GenerationMode> modes;
+  final AiModelCategory selectedCategory;
+  final List<AiModel> models;
+  final String selectedModelId;
+  final ValueChanged<AiModelCategory> onCategorySelected;
+  final ValueChanged<AiModel> onModelSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final sortedModes = [...modes]..sort((a, b) => a.order.compareTo(b.order));
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF151316),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF151316), Color(0xFF111113)],
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              StatusChip(
-                label: availableCoins == null
-                    ? 'Доступно: загружаем'
-                    : 'Доступно: ${formatCoins(availableCoins!)}',
-                icon: Icons.toll,
-              ),
-              StatusChip(label: selectedModelName, icon: Icons.image_outlined),
-            ],
+          const _PanelEyebrow('ФОРМАТ'),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 40,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: sortedModes.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final mode = sortedModes[index];
+                return _FormatPill(
+                  mode: mode,
+                  selected: mode.category == selectedCategory,
+                  onTap: () => onCategorySelected(mode.category),
+                );
+              },
+            ),
           ),
           const SizedBox(height: 14),
-          Text('Новая генерация', style: theme.textTheme.headlineMedium),
+          Row(
+            children: [
+              const _PanelEyebrow('МОДЕЛИ'),
+              const Spacer(),
+              Text(
+                _modelCountCopy(models.length),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFFC7C7CC),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
-          Text(
-            selectedTemplateTitle == null
-                ? 'Опишите изображение, проверьте стоимость и запустите задачу.'
-                : 'Шаблон: $selectedTemplateTitle. Описание можно уточнить перед запуском.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+          SizedBox(
+            height: 90,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: models.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                final model = models[index];
+                return _GeneratorModelCard(
+                  model: model,
+                  selected: model.id == selectedModelId,
+                  onTap: () => onModelSelected(model),
+                );
+              },
             ),
           ),
         ],
@@ -447,8 +570,427 @@ class _CreateHeader extends StatelessWidget {
   }
 }
 
-class _JobStateCard extends StatelessWidget {
-  const _JobStateCard({
+class _PanelEyebrow extends StatelessWidget {
+  const _PanelEyebrow(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: const TextStyle(
+        color: allAiNeon,
+        fontSize: 10,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 0,
+      ),
+    );
+  }
+}
+
+class _FormatPill extends StatelessWidget {
+  const _FormatPill({
+    required this.mode,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final GenerationMode mode;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 94,
+      child: Material(
+        color: selected
+            ? allAiNeon.withValues(alpha: 0.10)
+            : const Color(0xFF1C1B1F),
+        borderRadius: BorderRadius.circular(22),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: selected
+                    ? allAiNeon
+                    : Colors.white.withValues(alpha: 0.10),
+                width: selected ? 1.4 : 1,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Center(
+                child: Text(
+                  mode.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: selected ? allAiNeon : const Color(0xFFD4D4D8),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GeneratorModelCard extends StatelessWidget {
+  const _GeneratorModelCard({
+    required this.model,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AiModel model;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final meta = _generatorModelMeta(model);
+    final borderColor = selected
+        ? allAiNeon
+        : Colors.white.withValues(alpha: 0.10);
+
+    return SizedBox(
+      width: 156,
+      child: Material(
+        color: const Color(0xFF1A191C),
+        borderRadius: BorderRadius.circular(15),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: model.isAvailable ? onTap : null,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: borderColor, width: selected ? 1.4 : 1),
+              boxShadow: selected
+                  ? [
+                      BoxShadow(
+                        color: allAiNeon.withValues(alpha: 0.10),
+                        blurRadius: 12,
+                        spreadRadius: -8,
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _ModelThumb(imageUrl: meta.imageUrl),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              meta.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                height: 1.08,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              meta.subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: allAiNeon,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                height: 1.12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          costLabel(model.cost),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFFC7C7CC),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (selected)
+                        Icon(
+                          Icons.check_circle,
+                          color: allAiNeon.withValues(alpha: 0.9),
+                          size: 18,
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ModelThumb extends StatelessWidget {
+  const _ModelThumb({required this.imageUrl});
+
+  final String imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(11),
+      child: SizedBox(
+        width: 38,
+        height: 38,
+        child: CachedNetworkImage(
+          imageUrl: imageUrl,
+          fit: BoxFit.cover,
+          fadeInDuration: const Duration(milliseconds: 140),
+          placeholder: (context, url) => const _ThumbFallback(),
+          errorWidget: (context, url, error) => const _ThumbFallback(),
+        ),
+      ),
+    );
+  }
+}
+
+class _ThumbFallback extends StatelessWidget {
+  const _ThumbFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    return const DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF34343A), Color(0xFF111113)],
+        ),
+      ),
+    );
+  }
+}
+
+class _GeneratorModelMeta {
+  const _GeneratorModelMeta({
+    required this.title,
+    required this.subtitle,
+    required this.imageUrl,
+  });
+
+  final String title;
+  final String subtitle;
+  final String imageUrl;
+}
+
+_GeneratorModelMeta _generatorModelMeta(AiModel model) {
+  return _GeneratorModelMeta(
+    title: model.name,
+    subtitle:
+        model.shortLabel ??
+        model.providerLabel ??
+        modelCategoryLabel(model.category),
+    imageUrl:
+        model.thumbnailUrl ??
+        'https://storage.googleapis.com/allai-media/landing/studio-presets/v5/product-ugc-hook.webp?v=2',
+  );
+}
+
+String _generatorModelTitle(AiModel model) => _generatorModelMeta(model).title;
+
+String _modelCountCopy(int count) {
+  final word = count == 1
+      ? 'модель'
+      : count < 5
+      ? 'модели'
+      : 'моделей';
+  return '$count $word';
+}
+
+class _SuggestionRail extends StatelessWidget {
+  const _SuggestionRail({required this.suggestions, required this.onSelected});
+
+  final List<String> suggestions;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 38,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: suggestions.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final suggestion = suggestions[index];
+          return ActionChip(
+            label: Text(suggestion),
+            onPressed: () => onSelected(suggestion),
+            backgroundColor: const Color(0xFF151515),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+            shape: const StadiumBorder(),
+            labelStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AddImageButton extends StatelessWidget {
+  const _AddImageButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 74,
+      child: FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFF1D1D1F),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: const FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add_photo_alternate_outlined, size: 26),
+              SizedBox(width: 8),
+              Text(
+                'Add image',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GenerateButton extends StatelessWidget {
+  const _GenerateButton({
+    required this.enabled,
+    required this.loading,
+    required this.onPressed,
+  });
+
+  final bool enabled;
+  final bool loading;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 74,
+      child: FilledButton(
+        onPressed: enabled ? onPressed : null,
+        style: FilledButton.styleFrom(
+          backgroundColor: allAiNeon,
+          disabledBackgroundColor: allAiNeon.withValues(alpha: 0.46),
+          foregroundColor: Colors.black,
+          disabledForegroundColor: Colors.black.withValues(alpha: 0.62),
+          shape: const StadiumBorder(),
+          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+        ),
+        child: loading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.4,
+                  color: Colors.black,
+                ),
+              )
+            : const Text('Generate'),
+      ),
+    );
+  }
+}
+
+class _ComposerMeta extends StatelessWidget {
+  const _ComposerMeta({
+    required this.selectedModel,
+    required this.availableCoins,
+    required this.generationCost,
+    this.disabledReason,
+  });
+
+  final AiModel selectedModel;
+  final int? availableCoins;
+  final int generationCost;
+  final String? disabledReason;
+
+  @override
+  Widget build(BuildContext context) {
+    final copy =
+        disabledReason ??
+        '${_generatorModelTitle(selectedModel)} · Cost ${formatCoins(generationCost)} coins'
+            '${availableCoins == null ? '' : ' · ${formatCoins(availableCoins!)} available'}';
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 160),
+      child: Text(
+        copy,
+        key: ValueKey(copy),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: disabledReason == null ? allAiMuted : const Color(0xFFFFD879),
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          height: 1.25,
+        ),
+      ),
+    );
+  }
+}
+
+class _GenerationStatus extends StatelessWidget {
+  const _GenerationStatus({
     required this.state,
     required this.onOpenResult,
     required this.onRetry,
@@ -460,101 +1002,184 @@ class _JobStateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    if (state.isLoading) {
-      return const AppCard(
-        child: Row(
-          children: [
-            SizedBox(
-              width: 22,
-              height: 22,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            SizedBox(width: 12),
-            Expanded(child: Text('Создаём задачу')),
-          ],
-        ),
-      );
-    }
-
-    if (state.hasError) {
-      return AppCard(
-        child: Text(
-          generationErrorCopy(state.error!),
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.error,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      );
+    if (!state.isLoading && !state.hasError && state.asData?.value == null) {
+      return const SizedBox.shrink();
     }
 
     final response = state.asData?.value;
-    if (response == null) return const SizedBox.shrink();
+    final job = response?.job;
+    final isFailed = job?.status == GenerationJobStatus.failed;
+    final isCompleted = job?.status == GenerationJobStatus.completed;
 
-    final job = response.job;
-    final progress = job.progress?.clamp(0.0, 1.0).toDouble();
-    final isFailed = job.status == GenerationJobStatus.failed;
-    final isCompleted = job.status == GenerationJobStatus.completed;
-
-    return AppCard(
-      borderColor: isFailed
-          ? theme.colorScheme.error.withValues(alpha: 0.55)
-          : theme.colorScheme.primary.withValues(alpha: 0.28),
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF151515),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isFailed
+              ? const Color(0xFFFF8A80)
+              : allAiNeon.withValues(alpha: 0.28),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                isFailed ? Icons.error_outline : Icons.auto_awesome,
-                color: isFailed
-                    ? theme.colorScheme.error
-                    : theme.colorScheme.primary,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  generationProgressLabel(job.status),
-                  style: theme.textTheme.titleMedium,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          LinearProgressIndicator(value: isCompleted ? 1 : progress),
-          if (isFailed) ...[
-            const SizedBox(height: 12),
-            Text(
+          if (state.isLoading)
+            const _StatusRow(icon: Icons.auto_awesome, label: 'Generating...')
+          else if (state.hasError)
+            _StatusRow(
+              icon: Icons.error_outline,
+              label: generationErrorCopy(state.error!),
+              danger: true,
+            )
+          else if (job != null)
+            _StatusRow(
+              icon: isFailed ? Icons.error_outline : Icons.auto_awesome,
+              label: generationProgressLabel(job.status),
+              danger: isFailed,
+            ),
+          if (job?.progress != null) ...[
+            const SizedBox(height: 10),
+            LinearProgressIndicator(
+              value: isCompleted ? 1 : job!.progress!.clamp(0, 1).toDouble(),
+              backgroundColor: const Color(0xFF333337),
+              color: allAiNeon,
+            ),
+          ],
+          if (isFailed && job != null) ...[
+            const SizedBox(height: 10),
+            const Text(
               'Генерация не завершилась. Настройки сохранены.',
-              style: theme.textTheme.bodyMedium,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               job.costCoins > 0
-                  ? 'Коины возвращены на баланс.'
+                  ? 'Койны возвращены на баланс.'
                   : 'Списание не выполнено.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+              style: const TextStyle(
+                color: allAiMuted,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 12),
-            AppButton(
-              label: 'Повторить с теми же настройками',
-              icon: Icons.refresh,
-              secondary: true,
+            const SizedBox(height: 10),
+            TextButton.icon(
               onPressed: () => onRetry(job),
-            ),
-          ] else if (isCompleted && response.assets.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            AppButton(
-              label: 'Открыть результат',
-              icon: Icons.open_in_new,
-              secondary: true,
-              onPressed: () => onOpenResult(response),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Повторить'),
             ),
           ],
+          if (isCompleted &&
+              response != null &&
+              response.assets.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            TextButton.icon(
+              onPressed: () => onOpenResult(response),
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Open result'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusRow extends StatelessWidget {
+  const _StatusRow({
+    required this.icon,
+    required this.label,
+    this.danger = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool danger;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          color: danger ? const Color(0xFFFF8A80) : allAiNeon,
+          size: 22,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: danger ? const Color(0xFFFFDAD6) : Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ComposerLoading extends StatelessWidget {
+  const _ComposerLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: CircularProgressIndicator(color: allAiNeon));
+  }
+}
+
+class _ComposerError extends StatelessWidget {
+  const _ComposerError({
+    required this.title,
+    required this.description,
+    required this.onRetry,
+  });
+
+  final String title;
+  final String description;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            description,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: allAiMuted,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 24),
+          FilledButton(onPressed: onRetry, child: const Text('Try again')),
         ],
       ),
     );

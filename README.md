@@ -1,6 +1,6 @@
-# AllAI Mobile App
+# AllAi Mobile App
 
-Flutter Android/iOS app for AllAI Studio: AI image, video, upscale, avatar, motion, template, library, and coin-based generation workflows.
+Flutter Android/iOS app for AllAi Studio: AI image, video, upscale, avatar, motion, template, library, and coin-based generation workflows.
 
 ## Stack
 
@@ -76,7 +76,7 @@ build\app\outputs\flutter-apk\app-debug.apk
 
 ## Security
 
-The mobile app calls AllAI backend only. Do not add direct AI provider SDKs or provider API keys to the app.
+The mobile app calls AllAi backend only. Do not add direct AI provider SDKs or provider API keys to the app.
 
 Never commit:
 

@@ -127,7 +127,7 @@ rg -n "sk-|api[_-]?key|secret|providerKey|RevenueCat|IAP|OPENAI|replicate|stabil
 
 Welcome:
 
-- `AllAI` is visible in the first viewport.
+- `AllAi` is visible in the first viewport.
 - Headline: `Создавайте фото и видео с ИИ`.
 - Support copy is short and product-like.
 - Preview cards or chips show `Фото`, `Видео`, `Шаблоны`.
@@ -220,7 +220,7 @@ No-regression scans:
 
 Final role review was collected after this packet was created:
 
-- Product Lead: CONDITIONAL. Product scope is ready for Welcome/Auth/App shell. Allowed claims are AllAI, photo/video AI creation, formats/templates and mock app concepts such as coins/history/account. Forbidden claims remain live upload/image-to-image, real AI providers, real payments/IAP, guaranteed quality/speed and production email/download/share. No product P0 blocker after repo approval.
+- Product Lead: CONDITIONAL. Product scope is ready for Welcome/Auth/App shell. Allowed claims are AllAi, photo/video AI creation, formats/templates and mock app concepts such as coins/history/account. Forbidden claims remain live upload/image-to-image, real AI providers, real payments/IAP, guaranteed quality/speed and production email/download/share. No product P0 blocker after repo approval.
 - Mobile Architecture: CONDITIONAL. Architecture accepts the UI-only slice if work stays in theme, shared primitives, App Shell and auth screens. Router, auth/session data, core API/database/storage, generation, billing, tools/library/result data, platform files, permissions, Drift/generated DB, deps/assets remain forbidden. No architecture P0 blocker after repo approval.
 - Backend/Data: PASS. No API, schema or storage work is required. Existing mock user/session/profile data is enough. Backend/storage/billing/upload/provider/IAP boundaries must remain untouched.
 - Task Chat Logic: CONDITIONAL. Mobile Implementation remains the sole app-code owner after approval; other roles remain review/gate owners. No task-agent, live backend/provider, billing/IAP, upload/image-to-image, permission, Drift/schema, dependency or asset creep.

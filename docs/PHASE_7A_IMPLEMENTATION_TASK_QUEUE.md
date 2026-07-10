@@ -133,7 +133,7 @@ Allowed files:
 
 Acceptance:
 
-- first viewport shows `AllAI`;
+- first viewport shows `AllAi`;
 - headline is `Создавайте фото и видео с ИИ`;
 - support copy is short and product-like;
 - preview cards/chips show `Фото`, `Видео`, `Шаблоны`;

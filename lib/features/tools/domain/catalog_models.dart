@@ -111,12 +111,16 @@ class AiModel {
     required this.isAvailable,
     required this.cost,
     this.providerLabel,
+    this.shortLabel,
+    this.thumbnailUrl,
     this.availabilityReason,
   });
 
   final String id;
   final String name;
   final String? providerLabel;
+  final String? shortLabel;
+  final String? thumbnailUrl;
   final String? availabilityReason;
   final AiModelCategory category;
   final String description;
@@ -131,6 +135,8 @@ class AiModel {
       id: json['id'] as String,
       name: json['name'] as String,
       providerLabel: json['providerLabel'] as String?,
+      shortLabel: json['shortLabel'] as String?,
+      thumbnailUrl: json['thumbnailUrl'] as String?,
       category: _modelCategoryFromWire(json['category'] as String),
       description: json['description'] as String,
       supportedInputs: (json['supportedInputs'] as List<dynamic>)
@@ -154,6 +160,8 @@ class AiModel {
     'id': id,
     'name': name,
     if (providerLabel != null) 'providerLabel': providerLabel,
+    if (shortLabel != null) 'shortLabel': shortLabel,
+    if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
     'category': category.wireValue,
     'description': description,
     'supportedInputs': supportedInputs.map((input) => input.wireValue).toList(),

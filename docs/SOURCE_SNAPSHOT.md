@@ -12,7 +12,7 @@ Primary source pages:
 
 Observed product signals:
 
-- AllAI is positioned as a unified workflow for AI images, video, text, voice, templates, and social publishing.
+- AllAi is positioned as a unified workflow for AI images, video, text, voice, templates, and social publishing.
 - The landing page references 28 AI models, 6 content formats, and publishing to 3 social networks.
 - Generator formats include Photo, Video, Upscale, Avatars, and Motion.
 - Video model names observed include Kling, Seedance, Grok Video, Gemini Omni, Wan, Hailuo, Veo, Runway, and Sora.

@@ -8,7 +8,7 @@ Status: execution started.
 
 ## Goal
 
-Build a demoable Flutter static/mock UI for AllAI Mobile App before backend integration.
+Build a demoable Flutter static/mock UI for AllAi Mobile App before backend integration.
 
 The app must feel like a mobile creative workstation, not a landing page.
 

@@ -68,7 +68,7 @@ class AuthWelcomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Registration requires 18+ confirmation and AllAI terms acceptance.',
+                      'Registration requires 18+ confirmation and AllAi terms acceptance.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Color(0xFF7D7D84),

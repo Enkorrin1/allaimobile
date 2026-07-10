@@ -11,7 +11,7 @@
 - Use Freezed + json_serializable for typed immutable models and JSON parsing.
 - Use Drift/SQLite for local metadata/history cache.
 - Use flutter_secure_storage for auth tokens.
-- Mobile app calls AllAI backend only.
+- Mobile app calls AllAi backend only.
 - AI provider secrets stay backend-side only.
 - Model list must be backend-driven, not hardcoded.
 - Coin cost must be shown before generation.

@@ -1,6 +1,6 @@
 # Development Plan
 
-This roadmap describes the staged path from empty repository to final AllAI Mobile App product.
+This roadmap describes the staged path from empty repository to final AllAi Mobile App product.
 
 Snapshot date: 2026-07-02.
 
@@ -515,7 +515,7 @@ Work:
 
 Deliverables:
 
-- Mobile app reaches parity with the AllAI product vision, not just MVP.
+- Mobile app reaches parity with the AllAi product vision, not just MVP.
 
 Exit criteria:
 

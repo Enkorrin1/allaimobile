@@ -6,7 +6,7 @@ Status: complete.
 
 ## Summary
 
-The empty workspace has been converted into a runnable Flutter Android/iOS project for AllAI Mobile App.
+The empty workspace has been converted into a runnable Flutter Android/iOS project for AllAi Mobile App.
 
 The scaffold preserves the `docs/` project memory and adds the first app shell with routing, theme, shared widgets, placeholder screens, tests, CI, and environment example file.
 

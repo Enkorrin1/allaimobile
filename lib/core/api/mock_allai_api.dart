@@ -1,4 +1,5 @@
 import '../database/app_database.dart';
+import 'allai_market_catalog_seed.dart';
 import 'public_billing_sanitizer.dart';
 import 'public_catalog_sanitizer.dart';
 
@@ -369,8 +370,9 @@ class MockAllAiApi {
   Future<void> _ensureSeeded() async {
     if (_seeded) return;
 
-    final seedVersion = await _database.readMetadata('seed_version');
-    if (seedVersion == '1') {
+    const targetSeedVersion = '4';
+    final currentSeedVersion = await _database.readMetadata('seed_version');
+    if (currentSeedVersion == targetSeedVersion) {
       _seeded = true;
       return;
     }
@@ -383,217 +385,33 @@ class MockAllAiApi {
       for (final package in _packagesJson) {
         await _database.writeCoinPackage(sanitizePublicPackageJson(package));
       }
-      await _database.writeBillingSnapshot(
-        userId: _demoUserId,
-        coinBalance: _initialBalance,
-        updatedAt: _baseTime,
+      final existingBalance = await _database.readBillingSnapshot(_demoUserId);
+      if (existingBalance == null) {
+        await _database.writeBillingSnapshot(
+          userId: _demoUserId,
+          coinBalance: _initialBalance,
+          updatedAt: _baseTime,
+        );
+        await _database.writeCoinTransaction({
+          'id': 'tx-demo-balance',
+          'type': 'grant',
+          'title': 'Демо-баланс',
+          'amount': _initialBalance,
+          'balanceAfter': _initialBalance,
+          'createdAt': _baseTime.toIso8601String(),
+        });
+      }
+      await _database.writeMetadata(
+        'seed_version',
+        targetSeedVersion,
+        _baseTime,
       );
-      await _database.writeCoinTransaction({
-        'id': 'tx-demo-balance',
-        'type': 'grant',
-        'title': 'Демо-баланс',
-        'amount': _initialBalance,
-        'balanceAfter': _initialBalance,
-        'createdAt': _baseTime.toIso8601String(),
-      });
-      await _database.writeMetadata('seed_version', '1', _baseTime);
     });
     _seeded = true;
   }
 }
 
-final Map<String, dynamic> _catalogJson = {
-  'modes': [
-    {'id': 'photo', 'title': 'Фото', 'category': 'image', 'order': 1},
-    {'id': 'video', 'title': 'Видео', 'category': 'video', 'order': 2},
-    {'id': 'upscale', 'title': 'Апскейл', 'category': 'upscale', 'order': 3},
-    {'id': 'avatar', 'title': 'Аватары', 'category': 'avatar', 'order': 4},
-    {
-      'id': 'motion',
-      'title': 'Движение',
-      'category': 'motion',
-      'order': 5,
-      'isEnabled': false,
-    },
-  ],
-  'models': [
-    {
-      'id': 'photo-studio',
-      'name': 'AllAI Photo Studio',
-      'providerLabel': 'AllAI',
-      'category': 'image',
-      'description': 'Prompt-to-image и product shots для быстрых креативов.',
-      'supportedInputs': ['prompt', 'reference'],
-      'supportedOutputs': ['image'],
-      'capabilities': {
-        'aspectRatios': ['9:16', '1:1', '4:5'],
-        'qualityLevels': ['standard', 'high'],
-        'negativePrompt': true,
-        'referenceStrength': true,
-      },
-      'isAvailable': true,
-      'cost': {'minCoins': 80},
-    },
-    {
-      'id': 'video-hook',
-      'name': 'Video Hook Maker',
-      'providerLabel': 'AllAI',
-      'category': 'video',
-      'description': 'Короткий video hook для social ads и UGC-сценариев.',
-      'supportedInputs': ['prompt', 'image'],
-      'supportedOutputs': ['video'],
-      'capabilities': {
-        'aspectRatios': ['9:16', '1:1'],
-        'durations': [4, 6],
-        'qualityLevels': ['standard'],
-      },
-      'isAvailable': true,
-      'cost': {'minCoins': 240},
-    },
-    {
-      'id': 'upscale-clean',
-      'name': 'Clean Upscale',
-      'providerLabel': 'AllAI',
-      'category': 'upscale',
-      'description': 'Улучшение качества, детализации и резкости результата.',
-      'supportedInputs': ['image'],
-      'supportedOutputs': ['image'],
-      'capabilities': {
-        'qualityLevels': ['standard', 'high'],
-      },
-      'isAvailable': true,
-      'cost': {'minCoins': 60},
-    },
-    {
-      'id': 'avatar-try-on',
-      'name': 'Avatar Try-On',
-      'providerLabel': 'AllAI',
-      'category': 'avatar',
-      'description': 'Примерка продукта, образа или стилистики на персонаже.',
-      'supportedInputs': ['prompt', 'reference'],
-      'supportedOutputs': ['image'],
-      'capabilities': {
-        'aspectRatios': ['4:5', '1:1'],
-        'qualityLevels': ['standard'],
-        'referenceStrength': true,
-      },
-      'isAvailable': true,
-      'cost': {'minCoins': 140},
-    },
-    {
-      'id': 'motion-lite',
-      'name': 'Motion Lite',
-      'providerLabel': 'AllAI',
-      'category': 'motion',
-      'description': 'Оживление статичного изображения без сложного монтажа.',
-      'supportedInputs': ['image', 'prompt'],
-      'supportedOutputs': ['video'],
-      'capabilities': {
-        'aspectRatios': ['9:16'],
-        'durations': [4],
-      },
-      'isAvailable': false,
-      'cost': {'minCoins': 180},
-    },
-  ],
-  'templates': [
-    {
-      'id': 'product-ugc-hook',
-      'title': 'Product UGC Hook',
-      'category': 'ugc',
-      'description': 'Вертикальный hook с продуктом, коротким обещанием и CTA.',
-      'previewUrl': 'mock://templates/product-ugc-hook',
-      'defaultModelId': 'video-hook',
-      'defaultPrompt': 'Сделай короткий UGC hook для продукта.',
-      'requiredInputs': ['prompt', 'product_image'],
-      'outputFormat': 'video',
-      'targetAspectRatio': '9:16',
-    },
-    {
-      'id': 'social-hook-cut',
-      'title': 'Social Hook Cut',
-      'category': 'social_hook',
-      'description': 'Быстрый opening кадр для TikTok, Reels и Shorts.',
-      'previewUrl': 'mock://templates/social-hook-cut',
-      'defaultModelId': 'video-hook',
-      'defaultPrompt': 'Собери сильный social hook на первые 3 секунды.',
-      'requiredInputs': ['prompt'],
-      'outputFormat': 'video',
-      'targetAspectRatio': '9:16',
-    },
-    {
-      'id': 'try-on',
-      'title': 'Try-On',
-      'category': 'try_on',
-      'description': 'Визуальная примерка товара или образа на модели.',
-      'previewUrl': 'mock://templates/try-on',
-      'defaultModelId': 'avatar-try-on',
-      'defaultPrompt': 'Покажи товар на модели в чистом e-commerce стиле.',
-      'requiredInputs': ['prompt', 'product_image', 'person_image'],
-      'outputFormat': 'image',
-      'targetAspectRatio': '4:5',
-    },
-    {
-      'id': 'unboxing',
-      'title': 'Unboxing',
-      'category': 'unboxing',
-      'description': 'Сцена распаковки с фокусом на детали и ощущение покупки.',
-      'previewUrl': 'mock://templates/unboxing',
-      'defaultModelId': 'photo-studio',
-      'defaultPrompt': 'Сцена распаковки продукта с акцентом на детали.',
-      'requiredInputs': ['prompt', 'product_image'],
-      'outputFormat': 'image',
-      'targetAspectRatio': '9:16',
-    },
-    {
-      'id': 'beauty-hook',
-      'title': 'Beauty Hook',
-      'category': 'beauty',
-      'description': 'Первый кадр для beauty-продукта с чистым premium look.',
-      'previewUrl': 'mock://templates/beauty-hook',
-      'defaultModelId': 'photo-studio',
-      'defaultPrompt': 'Beauty hero shot с мягким светом и premium look.',
-      'requiredInputs': ['prompt', 'product_image'],
-      'outputFormat': 'image',
-      'targetAspectRatio': '4:5',
-    },
-    {
-      'id': 'ugc',
-      'title': 'UGC',
-      'category': 'ugc',
-      'description':
-          'Натуральный creator-style кадр для performance creatives.',
-      'previewUrl': 'mock://templates/ugc',
-      'defaultModelId': 'video-hook',
-      'defaultPrompt': 'Натуральный creator-style UGC кадр для продукта.',
-      'requiredInputs': ['prompt', 'product_image'],
-      'outputFormat': 'video',
-      'targetAspectRatio': '9:16',
-    },
-    {
-      'id': 'cinema',
-      'title': 'Cinema',
-      'category': 'cinema',
-      'description': 'Кинематографичный mood shot для презентации продукта.',
-      'previewUrl': 'mock://templates/cinema',
-      'defaultModelId': 'photo-studio',
-      'defaultPrompt':
-          'Кинематографичный продуктовый кадр с выразительным светом.',
-      'requiredInputs': ['prompt', 'reference_image'],
-      'outputFormat': 'image',
-      'targetAspectRatio': '16:9',
-    },
-  ],
-  'categories': [
-    {'id': 'image', 'title': 'Фото', 'order': 1},
-    {'id': 'video', 'title': 'Видео', 'order': 2},
-    {'id': 'upscale', 'title': 'Апскейл', 'order': 3},
-    {'id': 'avatar', 'title': 'Аватары', 'order': 4},
-    {'id': 'motion', 'title': 'Движение', 'order': 5},
-  ],
-  'updatedAt': '2026-07-03T09:00:00.000Z',
-};
-
+final Map<String, dynamic> _catalogJson = allAiMarketCatalogJson;
 final List<Map<String, dynamic>> _packagesJson = [
   {
     'id': 'start',

@@ -117,7 +117,7 @@ rg -n --glob "lib/**/presentation/**" "Dio|AppDatabase|Drift|MockAllAiApi|image_
 rg -n "sk-|api[_-]?key|secret|providerKey|RevenueCat|IAP|OPENAI|replicate|stability|runway|fal\.ai" lib test pubspec.yaml android ios
 git diff --check
 adb -s emulator-5554 install -r build\app\outputs\flutter-apk\app-debug.apk
-adb -s emulator-5554 shell am start -n com.allai.allai_mobile/.MainActivity
+adb -s emulator-5554 shell am start -n com.allai.mobile/.MainActivity
 adb -s emulator-5554 exec-out uiautomator dump /dev/tty
 ```
 

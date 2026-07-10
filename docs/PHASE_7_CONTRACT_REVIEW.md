@@ -46,7 +46,7 @@ Design direction:
 
 - Mobile-native studio, not an in-app landing page.
 - Format-first creation.
-- Visual scenario cards inspired by AllAI source: UGC, Cinema, Hook, Try-on, image/video studio.
+- Visual scenario cards inspired by AllAi source: UGC, Cinema, Hook, Try-on, image/video studio.
 - Media-first Result and Library.
 - Dense but readable mobile screens.
 - Small-screen target: 320-360dp Android devices.

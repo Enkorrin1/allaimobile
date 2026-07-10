@@ -15,11 +15,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'test_image_error_handling.dart';
+
 Future<void> pumpPhase7BApp(
   WidgetTester tester, {
   String initialLocation = AppRoutes.home,
   List<Duration>? generationPollingDelays,
 }) async {
+  ignoreNetworkImageLoadErrors();
+  tester.view.physicalSize = const Size(393, 852);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(() {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+
   final database = AppDatabase.memory();
   final storage = InMemorySecureStorage();
   addTearDown(database.close);
@@ -58,14 +68,9 @@ Future<void> scrollCurrentScreen(
   WidgetTester tester, [
   double distance = 560,
 ]) async {
-  final listView = find.byType(ListView);
-  final customScrollView = find.byType(CustomScrollView);
-  final target = tester.any(listView)
-      ? listView.first
-      : tester.any(customScrollView)
-      ? customScrollView.first
-      : find.byType(Scrollable).first;
-  await tester.drag(target, Offset(0, -distance));
+  final scrollables = find.byType(Scrollable);
+  expect(scrollables, findsWidgets);
+  await tester.drag(scrollables.last, Offset(0, -distance));
   await tester.pump(const Duration(milliseconds: 300));
 }
 
@@ -92,6 +97,20 @@ Future<void> tapVisible(WidgetTester tester, Finder finder) async {
   await pumpRoute(tester);
 }
 
+Future<void> openCreateComposer(WidgetTester tester) async {
+  await tester.tap(find.byIcon(Icons.add).last);
+  await pumpRoute(tester);
+
+  expect(find.text('Create'), findsOneWidget);
+  expect(find.text('VIDEO'), findsOneWidget);
+  expect(find.text('IMAGE'), findsOneWidget);
+  expect(find.text('EFFECTS'), findsOneWidget);
+  expect(find.text('MOTION'), findsOneWidget);
+
+  await tester.tap(find.text('VIDEO'));
+  await pumpRoute(tester);
+}
+
 void main() {
   testWidgets('Phase 7B Home exposes signed-in creative dashboard', (
     tester,
@@ -99,32 +118,53 @@ void main() {
     await pumpPhase7BApp(tester);
 
     expect(find.text('Videos'), findsOneWidget);
-    expect(find.text('Mermaid'), findsOneWidget);
+    expect(find.text('Product UGC Hook'), findsWidgets);
     expect(find.text('Try Now'), findsOneWidget);
-    expect(find.text('Most Popular'), findsOneWidget);
-    await scrollUntilVisible(tester, find.text('Crazy Effects'));
-    expect(find.text('Crazy Effects'), findsOneWidget);
+    expect(find.text('Готовые сценарии'), findsOneWidget);
+    await scrollUntilVisible(tester, find.text('Маркетинг студия'));
+    expect(find.text('Маркетинг студия'), findsOneWidget);
   });
 
-  testWidgets('Phase 7B Create keeps prompt, source and quote visible', (
+  testWidgets('Phase 7B plus opens Create sheet before composer', (
     tester,
   ) async {
+    await pumpPhase7BApp(tester);
+
+    await openCreateComposer(tester);
+
+    expect(find.text('Video Generation'), findsOneWidget);
+    expect(find.text('Describe a video...'), findsOneWidget);
+    expect(find.text('Add image'), findsOneWidget);
+    expect(find.text('Generate'), findsOneWidget);
+    expect(find.text('ФОРМАТ'), findsOneWidget);
+    expect(find.text('МОДЕЛИ'), findsOneWidget);
+    expect(find.text('Kling'), findsOneWidget);
+    expect(find.text('Seedance'), findsOneWidget);
+  });
+
+  testWidgets('Phase 7B Create keeps video composer visible', (tester) async {
     await pumpPhase7BApp(tester, initialLocation: AppRoutes.create);
 
-    expect(find.text('Новая генерация'), findsOneWidget);
-    expect(find.text('Формат'), findsOneWidget);
-    expect(find.text('Описание'), findsOneWidget);
-    expect(find.text('Промпт'), findsOneWidget);
+    expect(find.text('Video Generation'), findsOneWidget);
+    expect(find.text('Describe a video...'), findsOneWidget);
+    expect(find.text('Add image'), findsOneWidget);
+    expect(find.text('Generate'), findsOneWidget);
+
     await tester.enterText(
       find.byType(TextField).first,
-      'Чистый рекламный кадр продукта на светлом фоне',
+      'Clean cinematic product reveal on a bright studio background',
     );
     await pumpRoute(tester);
 
-    await scrollUntilVisible(tester, find.text('Референс-изображение'));
-    expect(find.text('Референс-изображение'), findsOneWidget);
-    await scrollUntilVisible(tester, find.text('Стоимость: 80 койнов'));
-    expect(find.text('Стоимость: 80 койнов'), findsOneWidget);
+    expect(
+      find.text('Kling · Cost 240 coins · 1 250 available'),
+      findsOneWidget,
+    );
+    expect(find.text('Futuristic walk of her'), findsOneWidget);
+    await tester.tap(find.text('Фото'));
+    await pumpRoute(tester);
+    expect(find.text('Image Generation'), findsOneWidget);
+    expect(find.text('NanoBanana'), findsOneWidget);
   });
 
   testWidgets('Phase 7B Catalog and template detail present scenario flow', (
@@ -132,9 +172,9 @@ void main() {
   ) async {
     await pumpPhase7BApp(tester, initialLocation: AppRoutes.tools);
 
-    expect(find.text('Каталог инструментов'), findsOneWidget);
-    expect(find.text('Модели и инструменты'), findsOneWidget);
-    expect(find.text('AllAI Photo Studio'), findsOneWidget);
+    expect(find.text('NanoBanana'), findsOneWidget);
+    await scrollUntilVisible(tester, find.text('Product UGC Hook'));
+    expect(find.text('Product UGC Hook'), findsOneWidget);
 
     final productTemplate = find.widgetWithText(
       TemplateCard,
@@ -142,13 +182,7 @@ void main() {
     );
     await tapVisible(tester, productTemplate);
 
-    expect(find.text('Шаблон'), findsOneWidget);
-    await scrollUntilVisible(tester, find.text('Что нужно от пользователя'));
-    expect(find.text('Что нужно от пользователя'), findsOneWidget);
-    await scrollUntilVisible(tester, find.text('Стартовая идея'));
-    expect(find.text('Стартовая идея'), findsOneWidget);
-    await scrollUntilVisible(tester, find.text('Использовать шаблон'));
-    expect(find.text('Использовать шаблон'), findsOneWidget);
+    expect(find.text('Product UGC Hook'), findsWidgets);
   });
 
   testWidgets('Phase 7B Result and Library show media history states', (
@@ -162,18 +196,19 @@ void main() {
 
     await tester.enterText(
       find.byType(TextField).first,
-      'Сделай чистый hero shot продукта для библиотеки',
+      'Clean hero shot for the library',
     );
     await pumpRoute(tester);
-    await tapVisible(tester, find.text('Запустить генерацию'));
+    await tapVisible(tester, find.text('Generate'));
 
-    expect(find.text('Результат'), findsOneWidget);
     expect(find.byType(GeneratedAssetPreview), findsWidgets);
-    await scrollUntilVisible(tester, find.text('Сохранить'));
-    expect(find.text('Сохранить'), findsOneWidget);
 
     await tester.binding.handlePopRoute();
     await pumpRoute(tester);
+
+    await tester.tap(find.byIcon(Icons.close));
+    await pumpRoute(tester);
+
     await tester.tap(find.text('Projects').last);
     await pumpRoute(tester);
 

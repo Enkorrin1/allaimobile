@@ -67,9 +67,15 @@ void main() {
       'avatar',
       'motion',
     ]);
-    expect(catalog.modes.last.isEnabled, isFalse);
+    expect(catalog.modes.last.isEnabled, isTrue);
     expect(catalog.models.first.id, 'photo-studio');
-    expect(catalog.models.first.providerLabel, 'AllAI');
+    expect(catalog.models.first.name, 'NanoBanana');
+    expect(catalog.models.first.providerLabel, 'AllAi');
+    expect(catalog.models.first.shortLabel, 'Редактура - ремикс');
+    expect(
+      catalog.models.first.thumbnailUrl,
+      contains('storage.googleapis.com/allai-media/landing'),
+    );
     final providerRoutingKey = 'provider${'Key'}';
     expect(
       catalog.models.first.toJson().containsKey(providerRoutingKey),

@@ -27,7 +27,7 @@ Status: received.
 
 Key points:
 
-- MVP is a native Android/iOS AllAI studio for AI photo, video, upscale, avatars, motion, and social-ready assets.
+- MVP is a native Android/iOS AllAi studio for AI photo, video, upscale, avatars, motion, and social-ready assets.
 - P0 includes auth, Home, Catalog, Templates, Generation, Job Status, Result Viewer, Library, Coins/Pricing, Profile/Settings, moderation and clear errors.
 - Out of MVP: direct social publishing, team accounts, full video timeline editor, community templates, advanced brand compliance, offline generation.
 

@@ -59,6 +59,12 @@ Map<String, dynamic> _sanitizeModel(Map<String, dynamic> raw) {
   if (raw['providerLabel'] is String) {
     model['providerLabel'] = raw['providerLabel'];
   }
+  if (raw['shortLabel'] is String) {
+    model['shortLabel'] = raw['shortLabel'];
+  }
+  if (raw['thumbnailUrl'] is String) {
+    model['thumbnailUrl'] = raw['thumbnailUrl'];
+  }
   if (raw['availabilityReason'] is String) {
     model['availabilityReason'] = raw['availabilityReason'];
   }

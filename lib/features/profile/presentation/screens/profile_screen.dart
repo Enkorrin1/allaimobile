@@ -57,7 +57,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    session?.user.displayName ?? 'Аккаунт AllAI',
+                    session?.user.displayName ?? 'Аккаунт AllAi',
                     style: theme.textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 8),

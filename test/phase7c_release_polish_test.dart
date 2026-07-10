@@ -11,10 +11,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'test_image_error_handling.dart';
+
 Future<void> pumpPhase7CApp(
   WidgetTester tester, {
   String initialLocation = AppRoutes.profile,
 }) async {
+  ignoreNetworkImageLoadErrors();
   final database = AppDatabase.memory();
   final storage = InMemorySecureStorage();
   addTearDown(database.close);

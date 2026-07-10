@@ -1,6 +1,6 @@
-# AllAI Mobile App Docs
+# AllAi Mobile App Docs
 
-This folder is the project memory for AllAI Mobile App.
+This folder is the project memory for AllAi Mobile App.
 
 Use these files as the stable reference before implementation work:
 

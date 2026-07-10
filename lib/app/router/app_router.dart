@@ -15,6 +15,7 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/result_viewer/presentation/screens/result_viewer_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/studio/presentation/screens/studio_screen.dart';
+import '../../features/tools/domain/catalog_models.dart';
 import '../../features/tools/presentation/screens/template_detail_screen.dart';
 import '../../features/tools/presentation/screens/tool_detail_screen.dart';
 import '../../features/tools/presentation/screens/tools_screen.dart';
@@ -127,7 +128,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.create,
                 name: 'create',
-                builder: (context, state) => const GeneratorScreen(),
+                builder: (context, state) => GeneratorScreen(
+                  initialCategory: _categoryFromQuery(
+                    state.uri.queryParameters['format'],
+                  ),
+                ),
               ),
             ],
           ),
@@ -170,3 +175,12 @@ bool _isAuthRoute(String path) {
       path == AppRoutes.register ||
       path == AppRoutes.passwordReset;
 }
+
+AiModelCategory _categoryFromQuery(String? value) => switch (value) {
+  'image' => AiModelCategory.image,
+  'video' => AiModelCategory.video,
+  'upscale' => AiModelCategory.upscale,
+  'avatar' => AiModelCategory.avatar,
+  'motion' => AiModelCategory.motion,
+  _ => AiModelCategory.video,
+};

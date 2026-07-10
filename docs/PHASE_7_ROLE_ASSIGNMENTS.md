@@ -19,7 +19,7 @@ Product Lead:
 UI UX:
 
 - Own the mobile UX/design direction.
-- Audit current screens against the AllAI product source.
+- Audit current screens against the AllAi product source.
 - Produce screen-by-screen specs for Welcome, Login/Register, Home, Create, Catalog/Templates, Result, Library, Pricing and Profile.
 - Define empty/loading/error/disabled states and small-screen behavior.
 

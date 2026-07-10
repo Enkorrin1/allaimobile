@@ -30,7 +30,15 @@ class GeneratedAssetPreview extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (hasRemoteImage)
-              Image.network(source, fit: BoxFit.cover)
+              Image.network(
+                source,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    _GeneratedPreviewSurface(
+                      accentColor: accentColor,
+                      fallbackIcon: fallbackIcon,
+                    ),
+              )
             else
               _GeneratedPreviewSurface(
                 accentColor: accentColor,

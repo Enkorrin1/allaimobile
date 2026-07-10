@@ -32,6 +32,11 @@ void main() {
 
       expect(state.isFromCache, isFalse);
       expect(state.catalog.models.single.id, 'photo-public');
+      expect(state.catalog.models.single.shortLabel, 'Ready');
+      expect(
+        state.catalog.models.single.thumbnailUrl,
+        'https://storage.googleapis.com/allai-media/test/public-photo.webp',
+      );
       expect(cached.toString(), isNot(contains(providerRoutingKey)));
       expect(cached.toString(), isNot(contains('routing')));
       expect(cached.toString(), isNot(contains('internalMargin')));
@@ -222,7 +227,10 @@ Map<String, dynamic> _validCatalogJson() {
       {
         'id': 'photo-public',
         'name': 'Public Photo',
-        'providerLabel': 'AllAI',
+        'providerLabel': 'AllAi',
+        'shortLabel': 'Ready',
+        'thumbnailUrl':
+            'https://storage.googleapis.com/allai-media/test/public-photo.webp',
         'category': 'image',
         'description': 'Public model',
         'supportedInputs': ['prompt'],

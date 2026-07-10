@@ -625,7 +625,7 @@ Phase 7A baseline evidence:
 
 - Redmi 7 is connected as `c7970e16`.
 - Device size/density: `720x1520`, density `320`.
-- Current app activity: `com.allai.allai_mobile/.MainActivity`.
+- Current app activity: `com.allai.mobile/.MainActivity`.
 - Baseline screenshots were captured under `build/` and are ignored by git.
 - Evidence is recorded in `docs/PHASE_7A_BASELINE_EVIDENCE.md`.
 - Baseline micro-gates were collected: UI UX CONDITIONAL, QA Release CONDITIONAL, Repo GitHub CONDITIONAL, Mobile Implementation BLOCKED.

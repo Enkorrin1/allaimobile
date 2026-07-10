@@ -82,8 +82,8 @@ adb devices
 adb -s c7970e16 shell wm size
 adb -s c7970e16 shell wm density
 adb -s c7970e16 install -r build\app\outputs\flutter-apk\app-debug.apk
-adb -s c7970e16 shell pm clear com.allai.allai_mobile
-adb -s c7970e16 shell monkey -p com.allai.allai_mobile 1
+adb -s c7970e16 shell pm clear com.allai.mobile
+adb -s c7970e16 shell monkey -p com.allai.mobile 1
 ```
 
 Capture evidence:

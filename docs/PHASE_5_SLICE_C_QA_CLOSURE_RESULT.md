@@ -25,7 +25,7 @@ Full Android Slice C smoke was not completed, but the following evidence is avai
 - QA installed the current debug APK;
 - QA cleared app data;
 - QA launched the app;
-- QA confirmed signed-out Welcome state on emulator with `AllAI`, `Войти`, `Создать аккаунт`.
+- QA confirmed signed-out Welcome state on emulator with `AllAi`, `Войти`, `Создать аккаунт`.
 
 ## Not Fully Covered In Emulator
 

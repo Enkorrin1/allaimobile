@@ -4,7 +4,7 @@ Date: 2026-07-03.
 
 ## Objective
 
-Replace static presentation-only fixtures with a typed mock product layer that can later point at the AllAI backend.
+Replace static presentation-only fixtures with a typed mock product layer that can later point at the AllAi backend.
 
 ## Scope
 
@@ -21,7 +21,7 @@ Included:
 
 Excluded:
 
-- Real AllAI backend calls.
+- Real AllAi backend calls.
 - Direct AI provider SDKs.
 - Provider keys or secrets.
 - Production auth.

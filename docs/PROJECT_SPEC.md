@@ -1,8 +1,8 @@
-# AllAI Mobile App: Product Spec
+# AllAi Mobile App: Product Spec
 
 ## 1. Product Summary
 
-AllAI Mobile App is a native-feeling Android/iOS application for creating AI photos, videos, upscales, avatars, motion clips, and social-ready creative assets from prompts, uploaded media, and ready-made templates.
+AllAi Mobile App is a native-feeling Android/iOS application for creating AI photos, videos, upscales, avatars, motion clips, and social-ready creative assets from prompts, uploaded media, and ready-made templates.
 
 The app should behave as the mobile product version of:
 
@@ -18,7 +18,7 @@ Core promise: one mobile workspace for AI creation, from idea to generated asset
 P0 goals:
 
 - Let users create AI images and AI videos from a prompt or uploaded source.
-- Support all generation models exposed by the AllAI backend configuration.
+- Support all generation models exposed by the AllAi backend configuration.
 - Provide ready-made creative scenarios and templates from the website.
 - Show coin balance, generation price, job progress, and final result.
 - Save all generations in history/library.
@@ -50,9 +50,9 @@ P2 goals:
 
 ## 4. Source Product Signals
 
-From the public AllAI pages:
+From the public AllAi pages:
 
-- Landing positions AllAI as one workflow for images, video, text, and voice.
+- Landing positions AllAi as one workflow for images, video, text, and voice.
 - Landing advertises 28 AI models, 6 content formats, and publishing to 3 social networks.
 - Generator page exposes content formats: Photo, Video, Upscale, Avatars, Motion.
 - Generator page lists video models such as Kling, Seedance, Grok Video, Gemini Omni, Wan, Hailuo, Veo, Runway, and Sora.
@@ -172,7 +172,7 @@ Why Flutter:
 
 ### Backend Boundary
 
-The mobile app must call AllAI backend only. It must not call Kling, Sora, Veo, Flux, Runway, OpenAI, Replicate, Fal, or any provider directly.
+The mobile app must call AllAi backend only. It must not call Kling, Sora, Veo, Flux, Runway, OpenAI, Replicate, Fal, or any provider directly.
 
 Backend responsibilities:
 
@@ -259,7 +259,7 @@ Data
   -> Media/file services
 
 Backend
-  -> AllAI API
+  -> AllAi API
 
 Local Storage
   -> flutter_secure_storage for tokens

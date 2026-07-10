@@ -34,7 +34,7 @@ Why this stack:
 
 The mobile app must never call AI providers directly.
 
-Mobile app calls AllAI backend only. Backend owns:
+Mobile app calls AllAi backend only. Backend owns:
 
 - Provider API keys.
 - Model/provider routing.
@@ -66,7 +66,7 @@ Data
   -> Media/file services
 
 Backend
-  -> AllAI API
+  -> AllAi API
 ```
 
 ## Feature Modules

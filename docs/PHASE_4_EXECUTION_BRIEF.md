@@ -4,7 +4,7 @@
 
 ## Objective
 
-Add an auth/account MVP foundation for AllAI Mobile App:
+Add an auth/account MVP foundation for AllAi Mobile App:
 
 - user can login/register in dev/mock environment;
 - legal consent and 18+ confirmation are captured;

@@ -10,7 +10,7 @@ The current app is technically usable but visually reads as a rough engineering 
 
 ## Design Brief
 
-Redesign the AllAI mobile app into a polished, practical mobile product inspired by the current AllAI landing/product surface at `https://allai.market/ru/landing`, while keeping the app focused on real workflows instead of a marketing landing page.
+Redesign the AllAi mobile app into a polished, practical mobile product inspired by the current AllAi landing/product surface at `https://allai.market/ru/landing`, while keeping the app focused on real workflows instead of a marketing landing page.
 
 The redesign must support full interactivity for the existing app flows:
 
@@ -26,7 +26,7 @@ The redesign must support full interactivity for the existing app flows:
 
 ## Visual Direction
 
-Use the AllAI source as product grounding:
+Use the AllAi source as product grounding:
 
 - format-first creation flows;
 - image and video AI generation;
@@ -39,7 +39,7 @@ Avoid the current sparse white prototype feel. The app should feel mobile-native
 
 ## Phase 7 Goals
 
-- Replace the rough Welcome/Login/Register presentation with a credible AllAI mobile onboarding flow.
+- Replace the rough Welcome/Login/Register presentation with a credible AllAi mobile onboarding flow.
 - Redesign app shell and bottom navigation so the main tasks are immediately legible.
 - Make Create the primary production workflow, not a placeholder form.
 - Make Catalog/Templates feel like selectable AI formats with visual cards and clear states.

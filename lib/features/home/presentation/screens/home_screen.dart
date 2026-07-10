@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../features/billing/presentation/providers/billing_providers.dart';
 import '../../../../features/library/presentation/providers/library_providers.dart';
+import '../../../../features/tools/domain/catalog_models.dart';
 import '../../../../features/tools/presentation/providers/catalog_providers.dart';
 import '../../../../features/tools/presentation/view_models/catalog_ui_mappers.dart';
 import '../../../../shared/widgets/error_state.dart';
@@ -32,15 +33,36 @@ class HomeScreen extends ConsumerWidget {
           ),
           data: (catalog) {
             final recentProjects = history.take(3).toList();
-            final firstTemplate = catalog.templates.isEmpty
-                ? null
-                : catalog.templates.first;
+            final heroTemplate =
+                _templateById(catalog, 'product-ugc-hook') ??
+                (catalog.templates.isEmpty ? null : catalog.templates.first);
+            final studioPresets = _itemsForTemplates(catalog, const [
+              'product-ugc-hook',
+              'sparkle-dress',
+              'movie-heroes-cinema',
+              'virtual-try-on',
+              'ghost-crowd',
+              'social-hook-cut',
+            ]);
+            final marketingPresets = _itemsForTemplates(catalog, const [
+              'ugc',
+              'beauty-hook',
+              'try-on',
+              'unboxing',
+            ]);
+            final videoPresets = _itemsForTemplates(catalog, const [
+              'zine-rhythm',
+              'stadium-fan-cam',
+              'airport-paparazzi',
+              'yard-carousel',
+              'lomo-home-movie',
+            ]);
 
             return ListView(
-              padding: const EdgeInsets.fromLTRB(24, 8, 0, 126),
+              padding: const EdgeInsets.fromLTRB(20, 8, 0, 116),
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(right: 24),
+                  padding: const EdgeInsets.only(right: 20),
                   child: _TopBar(
                     balanceLabel: balance == null
                         ? 'PRO'
@@ -49,89 +71,78 @@ class HomeScreen extends ConsumerWidget {
                     onMenu: () => _showHomeMenu(context),
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
                 Padding(
-                  padding: const EdgeInsets.only(right: 24),
+                  padding: const EdgeInsets.only(right: 20),
                   child: _HeroShowcase(
-                    title: 'Mermaid',
-                    imageUrl: _Images.heroMermaid,
-                    onTap: () => firstTemplate == null
+                    title: heroTemplate?.title ?? 'Product UGC Hook',
+                    imageUrl:
+                        heroTemplate?.previewUrl ??
+                        _FallbackImages.projectFallback,
+                    onTap: () => heroTemplate == null
                         ? context.go(AppRoutes.create)
                         : context.push(
-                            AppRoutes.templateDetail(firstTemplate.id),
+                            AppRoutes.templateDetail(heroTemplate.id),
                           ),
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
                 NeonSectionHeader(
-                  title: 'Most Popular',
-                  subtitle: 'Animate your photos with viral effects',
+                  title: 'Готовые сценарии',
+                  subtitle: 'Выберите формат и начните создавать',
                   actionLabel: 'All',
                   onActionPressed: () => context.push(AppRoutes.tools),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 _EffectStrip(
-                  items: _popularEffects,
+                  items: studioPresets,
                   onTap: (item) => _openEffect(context, item),
                 ),
-                const SizedBox(height: 30),
-                NeonSectionHeader(title: 'Crazy Effects'),
-                const SizedBox(height: 16),
-                _EffectStrip(
-                  items: _crazyEffects,
-                  compact: true,
-                  onTap: (item) => _openEffect(context, item),
-                ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 26),
                 const NeonSectionHeader(
-                  title: 'Trending Effects',
-                  subtitle: 'Transform your photos into masterpieces',
+                  title: 'Маркетинг студия',
+                  subtitle: 'UGC, анбоксинг, примерка, демо',
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 _EffectStrip(
-                  items: _trendingEffects,
+                  items: marketingPresets,
                   compact: true,
                   onTap: (item) => _openEffect(context, item),
                 ),
-                const SizedBox(height: 30),
-                NeonSectionHeader(title: 'Motion Control'),
-                const SizedBox(height: 16),
-                _EffectStrip(
-                  items: _motionEffects,
-                  compact: true,
-                  onTap: (item) => _openEffect(context, item),
-                ),
-                const SizedBox(height: 30),
-                NeonSectionHeader(title: 'Hyper Transform'),
-                const SizedBox(height: 16),
-                _EffectStrip(
-                  items: _hyperEffects,
-                  compact: true,
-                  onTap: (item) => _openEffect(context, item),
-                ),
-                const SizedBox(height: 30),
-                NeonSectionHeader(title: 'New Effects'),
-                const SizedBox(height: 16),
-                _EffectStrip(
-                  items: _newEffects,
-                  compact: true,
-                  onTap: (item) => _openEffect(context, item),
-                ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 26),
                 const NeonSectionHeader(
+                  title: 'ИИ-видео студия',
+                  subtitle: 'Seedance, zine-ритм и cinematic presets',
+                ),
+                const SizedBox(height: 14),
+                _EffectStrip(
+                  items: videoPresets,
+                  compact: true,
+                  onTap: (item) => _openEffect(context, item),
+                ),
+                const SizedBox(height: 28),
+                NeonSectionHeader(
                   title: 'Create Your Magic',
                   subtitle: 'Bring your imagination to life!',
+                  actionLabel: 'Open',
+                  onActionPressed: () => context.go(AppRoutes.create),
                 ),
-                const SizedBox(height: 18),
-                _MagicStrip(onCreate: () => context.go(AppRoutes.create)),
+                const SizedBox(height: 16),
+                _MagicStrip(
+                  primary: _templateById(catalog, 'zine-rhythm'),
+                  secondary: _templateById(catalog, 'virtual-try-on'),
+                  onCreate: () => context.go(AppRoutes.create),
+                  onTemplate: (template) =>
+                      context.push(AppRoutes.templateDetail(template.id)),
+                ),
                 if (recentProjects.isNotEmpty) ...[
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 26),
                   NeonSectionHeader(
                     title: 'Recent Projects',
                     actionLabel: 'Open',
                     onActionPressed: () => context.go(AppRoutes.library),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   _EffectStrip(
                     items: [
                       for (final project in recentProjects)
@@ -140,7 +151,7 @@ class HomeScreen extends ConsumerWidget {
                           imageUrl:
                               project.outputAsset?.thumbnailUrl ??
                               project.outputAsset?.url ??
-                              _Images.projectFallback,
+                              _FallbackImages.projectFallback,
                           route: AppRoutes.result(
                             project.outputAsset?.id ?? project.job.id,
                           ),
@@ -207,6 +218,31 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Template? _templateById(CatalogResponse catalog, String id) {
+    for (final template in catalog.templates) {
+      if (template.id == id) return template;
+    }
+    return null;
+  }
+
+  List<_EffectItem> _itemsForTemplates(
+    CatalogResponse catalog,
+    List<String> ids,
+  ) {
+    final byId = {
+      for (final template in catalog.templates) template.id: template,
+    };
+    return [
+      for (final id in ids)
+        if (byId[id] case final template?)
+          _EffectItem(
+            title: template.title,
+            imageUrl: template.previewUrl,
+            route: AppRoutes.templateDetail(template.id),
+          ),
+    ];
+  }
 }
 
 class _TopBar extends StatelessWidget {
@@ -231,7 +267,7 @@ class _TopBar extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: Colors.white,
-              fontSize: 44,
+              fontSize: 40,
               fontWeight: FontWeight.w900,
               height: 1,
             ),
@@ -239,12 +275,12 @@ class _TopBar extends StatelessWidget {
         ),
         Material(
           color: allAiNeon,
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(20),
           child: InkWell(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(20),
             onTap: onPro,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
               child: Row(
                 children: [
                   const Icon(Icons.auto_awesome, color: Colors.black, size: 17),
@@ -253,7 +289,7 @@ class _TopBar extends StatelessWidget {
                     balanceLabel == 'PRO' ? 'PRO' : balanceLabel,
                     style: const TextStyle(
                       color: Colors.black,
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -262,11 +298,11 @@ class _TopBar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 18),
+        const SizedBox(width: 14),
         IconButton(
           tooltip: 'Menu',
           onPressed: onMenu,
-          icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 36),
+          icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 32),
         ),
       ],
     );
@@ -288,11 +324,10 @@ class _HeroShowcase extends StatelessWidget {
   Widget build(BuildContext context) {
     return NeonMediaCard(
       title: title,
-      subtitle: 'Try a cinematic AI video effect',
       imageUrl: imageUrl,
       width: double.infinity,
-      height: 414,
-      borderRadius: 28,
+      height: 330,
+      borderRadius: 26,
       centerContent: true,
       ctaLabel: 'Try Now',
       onTap: onTap,
@@ -314,20 +349,20 @@ class _EffectStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: compact ? 166 : 316,
+      height: compact ? 145 : 248,
       child: ListView.separated(
         clipBehavior: Clip.none,
         scrollDirection: Axis.horizontal,
         itemCount: items.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 18),
+        separatorBuilder: (context, index) => const SizedBox(width: 14),
         itemBuilder: (context, index) {
           final item = items[index];
           return NeonMediaCard(
             title: item.title,
             imageUrl: item.imageUrl,
-            width: compact ? 186 : 238,
-            height: compact ? 166 : 316,
-            borderRadius: compact ? 16 : 18,
+            width: compact ? 154 : 198,
+            height: compact ? 145 : 248,
+            borderRadius: 16,
             onTap: () => onTap(item),
           );
         },
@@ -337,34 +372,42 @@ class _EffectStrip extends StatelessWidget {
 }
 
 class _MagicStrip extends StatelessWidget {
-  const _MagicStrip({required this.onCreate});
+  const _MagicStrip({
+    required this.primary,
+    required this.secondary,
+    required this.onCreate,
+    required this.onTemplate,
+  });
 
+  final Template? primary;
+  final Template? secondary;
   final VoidCallback onCreate;
+  final ValueChanged<Template> onTemplate;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 314,
+      height: 256,
       child: ListView(
         clipBehavior: Clip.none,
         scrollDirection: Axis.horizontal,
         children: [
           NeonMediaCard(
-            title: 'Video Generation',
-            imageUrl: _Images.magicVideo,
-            width: 406,
-            height: 314,
-            borderRadius: 18,
-            onTap: onCreate,
+            title: primary?.title ?? 'Video Generation',
+            imageUrl: primary?.previewUrl ?? _FallbackImages.projectFallback,
+            width: 330,
+            height: 256,
+            borderRadius: 16,
+            onTap: primary == null ? onCreate : () => onTemplate(primary!),
           ),
-          const SizedBox(width: 18),
+          const SizedBox(width: 14),
           NeonMediaCard(
-            title: 'Image Generation',
-            imageUrl: _Images.magicImage,
-            width: 258,
-            height: 314,
-            borderRadius: 18,
-            onTap: onCreate,
+            title: secondary?.title ?? 'Image Generation',
+            imageUrl: secondary?.previewUrl ?? _FallbackImages.projectFallback,
+            width: 210,
+            height: 256,
+            borderRadius: 16,
+            onTap: secondary == null ? onCreate : () => onTemplate(secondary!),
           ),
         ],
       ),
@@ -408,123 +451,9 @@ class _EffectItem {
   final String? route;
 }
 
-class _Images {
-  const _Images._();
+class _FallbackImages {
+  const _FallbackImages._();
 
-  static const heroMermaid =
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=82';
   static const projectFallback =
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=82';
-  static const magicVideo =
-      'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=82';
-  static const magicImage =
-      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=900&q=82';
+      'https://storage.googleapis.com/allai-media/landing/studio-presets/v5/product-ugc-hook.webp?v=2';
 }
-
-const _popularEffects = [
-  _EffectItem(
-    title: 'Face Punch',
-    imageUrl:
-        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=700&q=82',
-  ),
-  _EffectItem(
-    title: 'Steel Glow',
-    imageUrl:
-        'https://images.unsplash.com/photo-1495385794356-15371f348c31?auto=format&fit=crop&w=700&q=82',
-  ),
-  _EffectItem(
-    title: 'Flame',
-    imageUrl:
-        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=700&q=82',
-  ),
-];
-
-const _crazyEffects = [
-  _EffectItem(
-    title: 'Ghost Face',
-    imageUrl:
-        'https://images.unsplash.com/photo-1504703395950-b89145a5425b?auto=format&fit=crop&w=700&q=82',
-  ),
-  _EffectItem(
-    title: 'Dissolve',
-    imageUrl:
-        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=700&q=82',
-  ),
-  _EffectItem(
-    title: 'Inflate',
-    imageUrl:
-        'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=700&q=82',
-  ),
-];
-
-const _trendingEffects = [
-  _EffectItem(
-    title: 'Void',
-    imageUrl:
-        'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=700&q=82',
-  ),
-  _EffectItem(
-    title: 'Bloom',
-    imageUrl:
-        'https://images.unsplash.com/photo-1524503033411-c9566986fc8f?auto=format&fit=crop&w=700&q=82',
-  ),
-  _EffectItem(
-    title: 'Sand',
-    imageUrl:
-        'https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?auto=format&fit=crop&w=700&q=82',
-  ),
-];
-
-const _motionEffects = [
-  _EffectItem(
-    title: 'Zoom In',
-    imageUrl:
-        'https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=700&q=82',
-  ),
-  _EffectItem(
-    title: 'Arc Right',
-    imageUrl:
-        'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=700&q=82',
-  ),
-  _EffectItem(
-    title: '360 Orbit',
-    imageUrl:
-        'https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?auto=format&fit=crop&w=700&q=82',
-  ),
-];
-
-const _hyperEffects = [
-  _EffectItem(
-    title: 'Jokers Mist',
-    imageUrl:
-        'https://images.unsplash.com/photo-1512316609839-ce289d3eba0a?auto=format&fit=crop&w=700&q=82',
-  ),
-  _EffectItem(
-    title: 'Pony Tail',
-    imageUrl:
-        'https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?auto=format&fit=crop&w=700&q=82',
-  ),
-  _EffectItem(
-    title: 'Long Hair',
-    imageUrl:
-        'https://images.unsplash.com/photo-1513379733131-47fc74b45fc7?auto=format&fit=crop&w=700&q=82',
-  ),
-];
-
-const _newEffects = [
-  _EffectItem(
-    title: 'Hot Dance',
-    imageUrl:
-        'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=700&q=82',
-  ),
-  _EffectItem(
-    title: 'Ghost Flame',
-    imageUrl:
-        'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=700&q=82',
-  ),
-  _EffectItem(
-    title: 'Water Pour',
-    imageUrl:
-        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=700&q=82',
-  ),
-];

@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'test_image_error_handling.dart';
+
 class Phase7AHarness {
   const Phase7AHarness({required this.storage});
 
@@ -22,6 +24,7 @@ Future<Phase7AHarness> pumpPhase7AApp(
   bool signedIn = false,
   String initialLocation = AppRoutes.welcome,
 }) async {
+  ignoreNetworkImageLoadErrors();
   final database = AppDatabase.memory();
   final storage = InMemorySecureStorage();
   addTearDown(database.close);

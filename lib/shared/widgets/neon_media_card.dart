@@ -14,7 +14,7 @@ class NeonMediaCard extends StatelessWidget {
     this.subtitle,
     this.width = 160,
     this.height = 220,
-    this.borderRadius = 18,
+    this.borderRadius = 16,
     this.onTap,
     this.centerContent = false,
     this.ctaLabel,
@@ -60,11 +60,19 @@ class NeonMediaCard extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0x05000000),
-                      Color(0x15000000),
-                      Color(0xCC000000),
+                      Color(0x03000000),
+                      Color(0x22000000),
+                      Color(0xD9000000),
                     ],
-                    stops: [0, 0.48, 1],
+                    stops: [0, 0.54, 1],
+                  ),
+                ),
+              ),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: radius,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.07),
                   ),
                 ),
               ),
@@ -85,11 +93,11 @@ class NeonMediaCard extends StatelessWidget {
                       textAlign: centerContent
                           ? TextAlign.center
                           : TextAlign.start,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 22,
+                        fontSize: centerContent ? 28 : 20,
                         fontWeight: FontWeight.w900,
-                        height: 1.05,
+                        height: 1.08,
                       ),
                     ),
                     if (subtitle != null) ...[
@@ -103,7 +111,7 @@ class NeonMediaCard extends StatelessWidget {
                             : TextAlign.start,
                         style: const TextStyle(
                           color: Color(0xD9FFFFFF),
-                          fontSize: 13,
+                          fontSize: 12,
                           height: 1.2,
                           fontWeight: FontWeight.w600,
                         ),
@@ -113,8 +121,8 @@ class NeonMediaCard extends StatelessWidget {
                       const SizedBox(height: 18),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 34,
-                          vertical: 14,
+                          horizontal: 30,
+                          vertical: 12,
                         ),
                         decoration: const ShapeDecoration(
                           color: allAiNeon,
@@ -126,7 +134,7 @@ class NeonMediaCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Colors.black,
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
@@ -223,9 +231,9 @@ class NeonSectionHeader extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 27,
+                  fontSize: 24,
                   fontWeight: FontWeight.w900,
-                  height: 1.04,
+                  height: 1.08,
                 ),
               ),
               if (subtitle != null) ...[
@@ -236,7 +244,7 @@ class NeonSectionHeader extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: allAiMuted,
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -250,7 +258,7 @@ class NeonSectionHeader extends StatelessWidget {
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
               textStyle: const TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w900,
               ),
             ),

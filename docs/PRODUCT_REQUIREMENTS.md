@@ -2,7 +2,7 @@
 
 ## Vision
 
-AllAI Mobile App is the Android/iOS product version of AllAI Market: a native mobile workspace for generating AI photos, videos, upscales, avatars, motion clips, and social-ready creative assets.
+AllAi Mobile App is the Android/iOS product version of AllAi Market: a native mobile workspace for generating AI photos, videos, upscales, avatars, motion clips, and social-ready creative assets.
 
 The product promise is simple: user starts with a prompt, source image/video, or ready-made template, then receives a generated asset, keeps it in history, and can download, share, edit, upscale, or reuse it.
 

@@ -98,7 +98,7 @@ Future backend endpoints are documented only as placeholders:
 
 P0 screens and states:
 
-- Welcome: `AllAI`, short value copy, `Войти`, `Создать аккаунт`.
+- Welcome: `AllAi`, short value copy, `Войти`, `Создать аккаунт`.
 - Login: email, password, show/hide password, forgot-password entry, register link, loading text `Входим...`, safe error `Email или пароль неверны`.
 - Registration: email, password, optional repeat password, required legal consent and 18+ confirmation, disabled submit until valid.
 - Password reset: email field, `Отправить инструкцию`, mock success copy: `Если аккаунт существует, мы отправим инструкцию`.

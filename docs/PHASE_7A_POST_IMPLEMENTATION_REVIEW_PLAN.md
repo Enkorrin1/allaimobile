@@ -22,7 +22,7 @@ This file defines the review gates that must run after Mobile Implementation com
 
 Product Lead must review:
 
-- Welcome claims stay within approved scope: `AllAI`, `Создавайте фото и видео с ИИ`, `Фото`, `Видео`, `Шаблоны`, app-style creative studio framing.
+- Welcome claims stay within approved scope: `AllAi`, `Создавайте фото и видео с ИИ`, `Фото`, `Видео`, `Шаблоны`, app-style creative studio framing.
 - Welcome first viewport on Redmi 7 feels complete and premium, not empty MVP.
 - `Создать аккаунт` and `Войти` are visible and reachable.
 - Login, Register and Reset stay keyboard-safe with clear validation.
@@ -42,7 +42,7 @@ Product P0 blockers:
 
 UI UX must review:
 
-- Welcome: AllAI identity, headline, preview cards/chips, primary/secondary CTAs.
+- Welcome: AllAi identity, headline, preview cards/chips, primary/secondary CTAs.
 - Login: title `Вход`, email/password, CTA `Войти`, links, inline validation and loading state.
 - Register: legal consent, `18+`, disabled CTA until valid and fitting legal copy.
 - Password Reset: `Восстановить доступ`, `Продолжить`, success state and mock-safe copy.
@@ -133,7 +133,7 @@ Device setup:
 - `wm density` shows `320`;
 - install fresh APK;
 - `pm clear`;
-- launch `com.allai.allai_mobile/.MainActivity`.
+- launch `com.allai.mobile/.MainActivity`.
 
 Required screenshots:
 

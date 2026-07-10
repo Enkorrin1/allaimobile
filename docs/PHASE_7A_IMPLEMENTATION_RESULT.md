@@ -42,7 +42,7 @@ Theme and shared UI:
 
 Auth and shell:
 
-- Reworked Welcome into a product-ready mobile entry screen with `AllAI`, `Создавайте фото и видео с ИИ`, `Фото`, `Видео`, `Шаблоны`, primary `Создать аккаунт` and secondary `Войти`.
+- Reworked Welcome into a product-ready mobile entry screen with `AllAi`, `Создавайте фото и видео с ИИ`, `Фото`, `Видео`, `Шаблоны`, primary `Создать аккаунт` and secondary `Войти`.
 - Moved Welcome CTAs above the supporting feature list so they stay visible in short viewports.
 - Reworked Login with normal Russian copy, icon fields, keyboard-safe scrolling and preserved validation/session behavior.
 - Reworked Register with normal Russian copy, legal/18+ controls, preserved keys and disabled CTA gating.

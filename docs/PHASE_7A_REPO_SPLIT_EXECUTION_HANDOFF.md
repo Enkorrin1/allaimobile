@@ -112,7 +112,7 @@ Required after repo split:
 
 - Repo GitHub confirms Phase 5/6/7 docs and code were split, `build/`, screenshots, APK, secrets, platform permissions and generated DB are not staged, and `git add .` was not used.
 - Device baseline remains available: `adb devices` shows `c7970e16 device`, `wm size` is `720x1520`, and `wm density` is `320`.
-- Current app launch can be confirmed with `com.allai.allai_mobile/.MainActivity`.
+- Current app launch can be confirmed with `com.allai.mobile/.MainActivity`.
 - Baseline screenshots remain available and unstaged.
 - Pre-code verification has no red flags: `flutter analyze`, `flutter test`, provider/secret/IAP/upload/permission scans.
 

@@ -36,7 +36,7 @@ Phase 7A should only cover:
 
 Welcome hierarchy:
 
-1. `AllAI`.
+1. `AllAi`.
 2. `Создавайте фото и видео с ИИ`.
 3. `Форматы, сценарии и результаты в одной мобильной студии.`
 4. Compact preview cards: `Фото`, `Видео`, `Шаблоны`.
@@ -124,7 +124,7 @@ Risk controls:
 Product Lead:
 
 - Collected as PASS.
-- Welcome/Auth/App shell claims are acceptable if framed as AllAI mobile AI studio for photo/video generation, prompt-first creation, templates/scenarios, history and coins in demo/mock mode.
+- Welcome/Auth/App shell claims are acceptable if framed as AllAi mobile AI studio for photo/video generation, prompt-first creation, templates/scenarios, history and coins in demo/mock mode.
 - Must not promise live upload/image-to-image, real AI providers, real payments/IAP, guaranteed generation quality/speed or production download/share.
 - P0 boundary remains design foundation + Welcome/Auth/App shell polish with unchanged auth/navigation behavior and no backend/billing/upload/permission creep.
 

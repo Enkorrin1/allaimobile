@@ -41,7 +41,7 @@ Recommended future branch after repo unblock:
 
 Approved Welcome copy and terms:
 
-- Brand: `AllAI`
+- Brand: `AllAi`
 - Headline: `Создавайте фото и видео с ИИ`
 - Format chips: `Фото`, `Видео`, `Шаблоны`
 - Primary CTA: `Создать аккаунт`
@@ -147,7 +147,7 @@ Allowed file:
 
 Layout requirements:
 
-- first viewport shows `AllAI`;
+- first viewport shows `AllAi`;
 - headline uses `Создавайте фото и видео с ИИ`;
 - compact creative preview uses `Фото`, `Видео`, `Шаблоны`;
 - primary CTA is `Создать аккаунт`;
@@ -233,7 +233,7 @@ Avoid unless clean or explicitly approved:
 
 Suggested coverage:
 
-- Welcome first viewport contains `AllAI` and main CTA.
+- Welcome first viewport contains `AllAi` and main CTA.
 - Login validation remains visible.
 - Register requires legal consent and `18+`.
 - Password Reset shows safe mock success.
