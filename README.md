@@ -1,6 +1,6 @@
-# AllAi Mobile App
+# AllAi
 
-Flutter Android/iOS app for AllAi Studio: AI image, video, upscale, avatar, motion, template, library, and coin-based generation workflows.
+Flutter Android/iOS app for AllAi: AI image, video, upscale, avatar, motion, template, library, and coin-based generation workflows.
 
 ## Stack
 
