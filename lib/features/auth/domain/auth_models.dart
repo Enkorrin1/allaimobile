@@ -23,6 +23,26 @@ class RegisterRequest {
   final LegalConsent legalConsent;
 }
 
+enum SocialAuthProvider { google, apple }
+
+class SocialLoginRequest {
+  const SocialLoginRequest({
+    required this.provider,
+    this.email,
+    this.displayName,
+    this.idToken,
+    this.authorizationCode,
+    this.locale = 'ru',
+  });
+
+  final SocialAuthProvider provider;
+  final String? email;
+  final String? displayName;
+  final String? idToken;
+  final String? authorizationCode;
+  final String locale;
+}
+
 enum AuthErrorCode {
   invalidCredentials,
   emailAlreadyExists,
@@ -56,6 +76,13 @@ class AuthFailure implements Exception {
 
   @override
   String toString() => 'AuthFailure($code)';
+}
+
+extension SocialAuthProviderWire on SocialAuthProvider {
+  String get wireValue => switch (this) {
+    SocialAuthProvider.google => 'google',
+    SocialAuthProvider.apple => 'apple',
+  };
 }
 
 extension AuthErrorCodeWire on AuthErrorCode {

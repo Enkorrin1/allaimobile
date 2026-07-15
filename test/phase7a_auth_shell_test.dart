@@ -88,7 +88,9 @@ void main() {
   ) async {
     final harness = await pumpPhase7AApp(tester);
 
-    await tester.tap(find.text('I already have an account'));
+    final loginLink = find.text('I already have an account');
+    await scrollUntilVisible(tester, loginLink);
+    await tester.tap(loginLink.last);
     await pumpRoute(tester);
     expect(find.text('Sign in'), findsWidgets);
 
@@ -102,15 +104,41 @@ void main() {
     expect(await harness.storage.read(AuthSessionStore.sessionKey), isNull);
   });
 
+  testWidgets('Phase 7A Google social login opens app shell', (tester) async {
+    final harness = await pumpPhase7AApp(tester);
+
+    final googleButton = find.byKey(const Key('social-google-button'));
+    await scrollUntilVisible(tester, googleButton);
+    await tester.tap(googleButton);
+    await pumpRoute(tester);
+
+    expect(find.text('Videos'), findsOneWidget);
+    expect(await harness.storage.read(AuthSessionStore.sessionKey), isNotNull);
+  });
+
   testWidgets('Phase 7A register keeps legal gates tappable', (tester) async {
     await pumpPhase7AApp(tester);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+    final continueButton = find.widgetWithText(FilledButton, 'Continue');
+    await scrollUntilVisible(tester, continueButton);
+    await tester.tap(continueButton.last);
     await pumpRoute(tester);
 
     expect(find.text('Create account'), findsWidgets);
+    await scrollUntilVisible(
+      tester,
+      find.byKey(const Key('register-terms-checkbox')),
+    );
     expect(find.byKey(const Key('register-terms-checkbox')), findsOneWidget);
+    await scrollUntilVisible(
+      tester,
+      find.byKey(const Key('register-privacy-checkbox')),
+    );
     expect(find.byKey(const Key('register-privacy-checkbox')), findsOneWidget);
+    await scrollUntilVisible(
+      tester,
+      find.byKey(const Key('register-age-checkbox')),
+    );
     expect(find.byKey(const Key('register-age-checkbox')), findsOneWidget);
 
     final submit = find.widgetWithText(FilledButton, 'Create account');
@@ -121,9 +149,17 @@ void main() {
   testWidgets('Phase 7A password reset uses safe mock copy', (tester) async {
     await pumpPhase7AApp(tester);
 
-    await tester.tap(find.text('I already have an account'));
+    final loginLink = find.text('I already have an account');
+    await scrollUntilVisible(tester, loginLink);
+    await tester.tap(loginLink.last);
     await pumpRoute(tester);
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Forgot password?'));
+
+    final forgotPassword = find.widgetWithText(
+      OutlinedButton,
+      'Forgot password?',
+    );
+    await scrollUntilVisible(tester, forgotPassword);
+    await tester.tap(forgotPassword.last);
     await pumpRoute(tester);
 
     expect(find.text('Restore access'), findsWidgets);

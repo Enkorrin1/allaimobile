@@ -94,6 +94,9 @@ Use these files as the stable reference before implementation work:
 - `MOBILE_ARCHITECTURE.md` - recommended stack, app architecture, module boundaries.
 - `UX_SCREENS.md` - screen map, navigation, mobile UX states.
 - `DATA_AND_API.md` - domain model, API contracts, storage, job lifecycle.
+- `BACKEND_CONTENT_SYNC.md` - shared backend, remote content and mobile synchronization contract.
+- `BACKEND_API_AUDIT_2026-07-15.md` - live AllAi Swagger and mobile integration gap audit.
+- `PHASE_9B_CONTENT_CARDS_RESULT.md` - live backend content-card feed integration result.
 - `QA_RELEASE.md` - acceptance checklist, smoke tests, release risks.
 - `TASK_THREADS.md` - Codex task-chat roles and handoff model.
 - `REPO_SETUP.md` - repository structure, git, CI, first commit plan.

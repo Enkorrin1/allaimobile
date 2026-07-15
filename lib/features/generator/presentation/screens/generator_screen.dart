@@ -8,6 +8,7 @@ import '../../../../features/billing/presentation/providers/billing_providers.da
 import '../../../../features/billing/presentation/view_models/billing_copy.dart';
 import '../../../../features/generation_jobs/domain/generation_job_models.dart';
 import '../../../../features/generation_jobs/presentation/providers/generation_job_providers.dart';
+import '../../../../features/saved_prompts/presentation/providers/saved_prompts_providers.dart';
 import '../../../../features/tools/domain/catalog_models.dart';
 import '../../../../features/tools/presentation/providers/catalog_providers.dart';
 import '../../../../features/tools/presentation/view_models/catalog_ui_mappers.dart';
@@ -17,10 +18,16 @@ import '../../../../shared/widgets/neon_media_card.dart';
 class GeneratorScreen extends ConsumerStatefulWidget {
   const GeneratorScreen({
     this.initialCategory = AiModelCategory.video,
+    this.initialModelId,
+    this.initialPrompt,
+    this.initialSourceAssetId,
     super.key,
   });
 
   final AiModelCategory initialCategory;
+  final String? initialModelId;
+  final String? initialPrompt;
+  final String? initialSourceAssetId;
 
   @override
   ConsumerState<GeneratorScreen> createState() => _GeneratorScreenState();
@@ -37,6 +44,9 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
   void initState() {
     super.initState();
     _selectedCategory = widget.initialCategory;
+    _selectedModelId = widget.initialModelId;
+    _prompt = widget.initialPrompt ?? '';
+    _promptController.text = _prompt;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _restoreRequested) return;
       _restoreRequested = true;
@@ -49,10 +59,14 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
   @override
   void didUpdateWidget(covariant GeneratorScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.initialCategory != widget.initialCategory) {
+    if (oldWidget.initialCategory != widget.initialCategory ||
+        oldWidget.initialModelId != widget.initialModelId ||
+        oldWidget.initialPrompt != widget.initialPrompt) {
       setState(() {
         _selectedCategory = widget.initialCategory;
-        _selectedModelId = null;
+        _selectedModelId = widget.initialModelId;
+        _prompt = widget.initialPrompt ?? '';
+        _promptController.text = _prompt;
       });
     }
   }
@@ -68,6 +82,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
     final catalogAsync = ref.watch(catalogStateProvider);
     final balanceAsync = ref.watch(balanceStateProvider);
     final jobState = ref.watch(generationJobControllerProvider);
+    final savedPrompts = ref.watch(savedPromptsControllerProvider);
     final l10n = context.l10n;
 
     return Scaffold(
@@ -124,6 +139,11 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                 l10n.generatorSuggestionDragon,
                 l10n.generatorSuggestionProduct,
               ],
+              savedPrompts: savedPrompts
+                  .where(
+                    (saved) => saved.category == _selectedCategory.wireValue,
+                  )
+                  .toList(),
               disabledReason: disabledReason,
               showDisabledReason:
                   _prompt.trim().isNotEmpty || disabledReason == null,
@@ -149,6 +169,39 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                 );
                 setState(() => _prompt = suggestion);
               },
+              onSavePrompt: _prompt.trim().isEmpty
+                  ? null
+                  : () async {
+                      await ref
+                          .read(savedPromptsControllerProvider.notifier)
+                          .save(
+                            text: _prompt,
+                            category: _selectedCategory.wireValue,
+                            modelId: selectedModel.id,
+                          );
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          SnackBar(content: Text(l10n.generatorPromptSaved)),
+                        );
+                    },
+              onSavedPromptSelected: (saved) {
+                _promptController.text = saved.text;
+                _promptController.selection = TextSelection.collapsed(
+                  offset: saved.text.length,
+                );
+                setState(() {
+                  _prompt = saved.text;
+                  _selectedModelId =
+                      visibleModels.any((model) => model.id == saved.modelId)
+                      ? saved.modelId
+                      : _selectedModelId;
+                });
+              },
+              onSavedPromptRemoved: (saved) => ref
+                  .read(savedPromptsControllerProvider.notifier)
+                  .remove(saved.id),
               onAddImage: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(l10n.generatorImageUploadLater)),
@@ -172,6 +225,9 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
                             modelId: selectedModel.id,
                             templateId: selectedTemplate?.id,
                             prompt: prompt,
+                            inputAssetIds: widget.initialSourceAssetId == null
+                                ? const []
+                                : [widget.initialSourceAssetId!],
                             settings: const {'aspectRatio': '9:16'},
                           );
 
@@ -271,6 +327,7 @@ class _VideoComposer extends StatelessWidget {
     required this.models,
     required this.selectedModel,
     required this.suggestions,
+    required this.savedPrompts,
     required this.disabledReason,
     required this.showDisabledReason,
     required this.jobState,
@@ -282,6 +339,9 @@ class _VideoComposer extends StatelessWidget {
     required this.onModelSelected,
     required this.onPromptChanged,
     required this.onSuggestionSelected,
+    required this.onSavePrompt,
+    required this.onSavedPromptSelected,
+    required this.onSavedPromptRemoved,
     required this.onAddImage,
     required this.onRetry,
     required this.onGenerate,
@@ -294,6 +354,7 @@ class _VideoComposer extends StatelessWidget {
   final List<AiModel> models;
   final AiModel selectedModel;
   final List<String> suggestions;
+  final List<SavedPrompt> savedPrompts;
   final String? disabledReason;
   final bool showDisabledReason;
   final AsyncValue<GenerationJobResponse?> jobState;
@@ -305,6 +366,9 @@ class _VideoComposer extends StatelessWidget {
   final ValueChanged<AiModel> onModelSelected;
   final ValueChanged<String> onPromptChanged;
   final ValueChanged<String> onSuggestionSelected;
+  final VoidCallback? onSavePrompt;
+  final ValueChanged<SavedPrompt> onSavedPromptSelected;
+  final ValueChanged<SavedPrompt> onSavedPromptRemoved;
   final VoidCallback onAddImage;
   final ValueChanged<GenerationJob> onRetry;
   final VoidCallback? onGenerate;
@@ -407,6 +471,15 @@ class _VideoComposer extends StatelessWidget {
                   suggestions: suggestions,
                   onSelected: onSuggestionSelected,
                 ),
+                if (savedPrompts.isNotEmpty || onSavePrompt != null) ...[
+                  const SizedBox(height: 10),
+                  _SavedPromptRail(
+                    prompts: savedPrompts,
+                    onSave: onSavePrompt,
+                    onSelected: onSavedPromptSelected,
+                    onRemoved: onSavedPromptRemoved,
+                  ),
+                ],
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -512,13 +585,8 @@ class _FormatModelPanel extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
       decoration: BoxDecoration(
         color: const Color(0xFF151316),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF151316), Color(0xFF111113)],
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -619,13 +687,13 @@ class _FormatPill extends StatelessWidget {
         color: selected
             ? allAiNeon.withValues(alpha: 0.10)
             : const Color(0xFF1C1B1F),
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(8),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           child: DecoratedBox(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: selected
                     ? allAiNeon
@@ -677,13 +745,13 @@ class _GeneratorModelCard extends StatelessWidget {
       width: 156,
       child: Material(
         color: const Color(0xFF1A191C),
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(8),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: model.isAvailable ? onTap : null,
           child: DecoratedBox(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(color: borderColor, width: selected ? 1.4 : 1),
               boxShadow: selected
                   ? [
@@ -779,7 +847,7 @@ class _ModelThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(11),
+      borderRadius: BorderRadius.circular(8),
       child: SizedBox(
         width: 38,
         height: 38,
@@ -874,6 +942,60 @@ class _SuggestionRail extends StatelessWidget {
   }
 }
 
+class _SavedPromptRail extends StatelessWidget {
+  const _SavedPromptRail({
+    required this.prompts,
+    required this.onSave,
+    required this.onSelected,
+    required this.onRemoved,
+  });
+
+  final List<SavedPrompt> prompts;
+  final VoidCallback? onSave;
+  final ValueChanged<SavedPrompt> onSelected;
+  final ValueChanged<SavedPrompt> onRemoved;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SizedBox(
+      height: 42,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: prompts.length + 1,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return IconButton.filledTonal(
+              key: const Key('save-prompt-button'),
+              tooltip: l10n.generatorSavePrompt,
+              onPressed: onSave,
+              icon: const Icon(Icons.bookmark_add_outlined, size: 20),
+            );
+          }
+          final prompt = prompts[index - 1];
+          return InputChip(
+            key: Key('saved-prompt-${prompt.id}'),
+            avatar: const Icon(Icons.bookmark_outline, size: 17),
+            label: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 190),
+              child: Text(
+                prompt.text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            deleteIcon: const Icon(Icons.close, size: 17),
+            deleteButtonTooltipMessage: l10n.generatorRemovePrompt,
+            onPressed: () => onSelected(prompt),
+            onDeleted: () => onRemoved(prompt),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _AddImageButton extends StatelessWidget {
   const _AddImageButton({required this.onPressed});
 
@@ -891,9 +1013,7 @@ class _AddImageButton extends StatelessWidget {
           backgroundColor: const Color(0xFF1D1D1F),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: FittedBox(
           fit: BoxFit.scaleDown,
@@ -1031,7 +1151,7 @@ class _LocalizedGenerationStatus extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: const Color(0xFF151515),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: isFailed
               ? const Color(0xFFFF8A80)

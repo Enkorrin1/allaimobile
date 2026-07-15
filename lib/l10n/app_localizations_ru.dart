@@ -80,6 +80,15 @@ class AppLocalizationsRu extends AppLocalizations {
       'Для регистрации нужно подтвердить 18+ и принять условия AllAi.';
 
   @override
+  String get authOrContinueWith => 'или продолжите через';
+
+  @override
+  String get authContinueWithGoogle => 'Продолжить с Google';
+
+  @override
+  String get authContinueWithApple => 'Продолжить с Apple ID';
+
+  @override
   String get authLoginTitle => 'Вход';
 
   @override
@@ -244,6 +253,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeRecentProjectsTitle => 'Недавние проекты';
 
   @override
+  String get homeActiveJobsTitle => 'Creating now';
+
+  @override
+  String get homeActiveJobsSubtitle =>
+      'Your generations continue in the background';
+
+  @override
+  String homeJobProgress(int progress) {
+    return '$progress% complete';
+  }
+
+  @override
   String get homeAllEffects => 'Все эффекты';
 
   @override
@@ -254,6 +275,18 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get homeTryNow => 'Попробовать';
+
+  @override
+  String get favoritesTitle => 'Favorites';
+
+  @override
+  String get favoritesEmpty => 'Save models and templates for quick access';
+
+  @override
+  String get favoritesAdd => 'Add to favorites';
+
+  @override
+  String get favoritesRemove => 'Remove from favorites';
 
   @override
   String get generatorUnavailableTitle => 'Генератор недоступен';
@@ -383,6 +416,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get generatorSuggestionProduct => 'Cinematic product reveal';
 
   @override
+  String get generatorSavedPromptsTitle => 'Saved prompts';
+
+  @override
+  String get generatorSavePrompt => 'Save prompt';
+
+  @override
+  String get generatorRemovePrompt => 'Remove prompt';
+
+  @override
+  String get generatorPromptSaved => 'Prompt saved';
+
+  @override
   String get projectsLoading => 'Загружаем проекты';
 
   @override
@@ -443,7 +488,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get settingsLanguageDescription =>
-      'Интерфейс теперь поддерживает основные языки запуска. Переключатель языков подключим следующим шагом.';
+      'Выберите язык интерфейса. Выбор сохранится на этом устройстве.';
+
+  @override
+  String get settingsLanguageSystem => 'Язык устройства';
+
+  @override
+  String get settingsLanguagePickerTitle => 'Язык приложения';
 
   @override
   String get settingsNotificationsTitle => 'Уведомления';
@@ -583,4 +634,24 @@ class AppLocalizationsRu extends AppLocalizations {
   String pricingPackageCoins(String coins) {
     return '$coins койнов';
   }
+
+  @override
+  String get pricingSelectPackage => 'Select a coin package';
+
+  @override
+  String get pricingBuyPackage => 'Continue with selected package';
+
+  @override
+  String get pricingRestorePurchases => 'Restore purchases';
+
+  @override
+  String get pricingPurchaseUnavailable =>
+      'Store purchases are not enabled in this build.';
+
+  @override
+  String get pricingPurchaseFailed =>
+      'The purchase could not be completed. No charge was made.';
+
+  @override
+  String get pricingRestoringPurchases => 'Checking previous purchases...';
 }

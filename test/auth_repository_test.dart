@@ -27,6 +27,21 @@ void main() {
     expect(await storage.read(AuthSessionStore.sessionKey), isNotNull);
   });
 
+  test('social login success stores secure session', () async {
+    final session = await repository.loginWithSocialProvider(
+      const SocialLoginRequest(
+        provider: SocialAuthProvider.google,
+        email: 'google.creator@example.com',
+        displayName: 'Google Creator',
+      ),
+    );
+
+    expect(session.user.email, 'google.creator@example.com');
+    expect(session.user.displayName, 'Google Creator');
+    expect(session.user.legalConsent.isComplete, isTrue);
+    expect(await storage.read(AuthSessionStore.sessionKey), isNotNull);
+  });
+
   test(
     'wrong credentials show safe failure and do not store session',
     () async {

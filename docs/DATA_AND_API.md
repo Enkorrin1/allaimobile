@@ -219,3 +219,25 @@ GET /v1/billing/balance
 GET /v1/billing/packages
 POST /v1/billing/purchases/verify
 ```
+
+Purchase verification request:
+
+```ts
+type VerifyStorePurchaseRequest = {
+  platform: "apple_app_store" | "google_play";
+  packageId: string;
+  storeProductId: string;
+  transactionId: string;
+  verificationPayload: string;
+  clientRequestId: string;
+};
+```
+
+Rules:
+
+- Mobile never credits coins from a local store callback.
+- The backend verifies the signed transaction with Apple or Google.
+- `transactionId` and `clientRequestId` are idempotency keys.
+- A verified transaction can be credited once only.
+- Store product IDs come from an approved backend package contract.
+- Receipt payloads must not be written to logs, analytics, or SQLite.

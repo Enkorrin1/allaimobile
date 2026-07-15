@@ -133,9 +133,9 @@ class _NeonBottomBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 82 + bottomPadding,
+          height: 76 + bottomPadding,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(22, 8, 22, 14),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -214,11 +214,11 @@ class _CreateButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 104,
-      height: 62,
+      width: 92,
+      height: 54,
       child: Material(
         color: allAiNeon,
-        borderRadius: BorderRadius.circular(31),
+        borderRadius: BorderRadius.circular(27),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
@@ -249,7 +249,7 @@ class _CreateSheet extends StatelessWidget {
         child: Container(
           decoration: const BoxDecoration(
             color: Color(0xFF18181A),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: SafeArea(
             top: false,
@@ -263,7 +263,7 @@ class _CreateSheet extends StatelessWidget {
                     l10n.createSheetTitle,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 34,
+                      fontSize: 28,
                       fontWeight: FontWeight.w900,
                       height: 1,
                     ),
@@ -286,11 +286,11 @@ class _CreateSheet extends StatelessWidget {
                   const SizedBox(height: 24),
                   Center(
                     child: SizedBox(
-                      width: 104,
-                      height: 60,
+                      width: 56,
+                      height: 56,
                       child: Material(
                         color: const Color(0xFF111113),
-                        borderRadius: BorderRadius.circular(30),
+                        shape: const CircleBorder(),
                         clipBehavior: Clip.antiAlias,
                         child: InkWell(
                           onTap: () => Navigator.of(context).pop(),
@@ -329,7 +329,7 @@ class _CreateOptionTile extends StatelessWidget {
 
     return Material(
       color: allAiPanel,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(8),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => Navigator.of(context).pop(option.action),

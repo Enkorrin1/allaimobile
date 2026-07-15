@@ -4,6 +4,7 @@ import 'package:allai_mobile/features/library/domain/library_history_item.dart';
 import 'package:allai_mobile/features/library/presentation/providers/library_providers.dart';
 import 'package:allai_mobile/features/result_viewer/presentation/screens/result_viewer_screen.dart';
 import 'package:allai_mobile/features/tools/domain/catalog_models.dart';
+import 'package:allai_mobile/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -31,7 +32,7 @@ void main() {
     expect(find.text('Повторить'), findsNothing);
   });
 
-  testWidgets('completed actions show safe feedback or disabled affordance', (
+  testWidgets('completed result exposes repeat and reuse actions', (
     tester,
   ) async {
     await _pumpResultViewer(
@@ -46,19 +47,14 @@ void main() {
       routeId: 'asset-completed',
     );
 
-    await _scrollUntilVisible(tester, find.text('Сохранить'));
-    expect(find.text('Сохранить'), findsOneWidget);
-    await tester.tap(find.text('Сохранить'));
-    await tester.pump();
-    expect(
-      find.text('Сохранение появится в следующем обновлении'),
-      findsOneWidget,
-    );
+    await _scrollUntilVisible(tester, find.text('Retry'));
+    expect(find.text('Retry'), findsOneWidget);
+    expect(find.text('Upscale'), findsOneWidget);
 
     final sourceChip = tester.widget<ActionChip>(
-      find.widgetWithText(ActionChip, 'Источник скоро'),
+      find.widgetWithText(ActionChip, 'Add image'),
     );
-    expect(sourceChip.onPressed, isNull);
+    expect(sourceChip.onPressed, isNotNull);
   });
 }
 
@@ -74,7 +70,11 @@ Future<void> _pumpResultViewer(
           _FakeLibraryRepository(item),
         ),
       ],
-      child: MaterialApp(home: ResultViewerScreen(assetId: routeId)),
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ResultViewerScreen(assetId: routeId),
+      ),
     ),
   );
   await tester.pump();

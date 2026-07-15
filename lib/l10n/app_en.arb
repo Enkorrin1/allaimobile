@@ -23,6 +23,9 @@
   "authWelcomeSubtitle": "Turn your ideas into AI video with cinematic effects",
   "authWelcomeLogin": "I already have an account",
   "authWelcomeLegal": "Registration requires 18+ confirmation and AllAi terms acceptance.",
+  "authOrContinueWith": "or continue with",
+  "authContinueWithGoogle": "Continue with Google",
+  "authContinueWithApple": "Continue with Apple ID",
   "authLoginTitle": "Sign in",
   "authLoginHeadline": "Welcome back",
   "authLoginSubtitle": "Sign in to open the generator, library, and coin balance.",
@@ -75,10 +78,24 @@
   "homeMagicTitle": "Create Your Magic",
   "homeMagicSubtitle": "Bring your imagination to life!",
   "homeRecentProjectsTitle": "Recent Projects",
+  "homeActiveJobsTitle": "Creating now",
+  "homeActiveJobsSubtitle": "Your generations continue in the background",
+  "homeJobProgress": "{progress}% complete",
+  "@homeJobProgress": {
+    "placeholders": {
+      "progress": {
+        "type": "int"
+      }
+    }
+  },
   "homeAllEffects": "All effects",
   "homeActionAll": "All",
   "homeActionOpen": "Open",
   "homeTryNow": "Try Now",
+  "favoritesTitle": "Favorites",
+  "favoritesEmpty": "Save models and templates for quick access",
+  "favoritesAdd": "Add to favorites",
+  "favoritesRemove": "Remove from favorites",
   "generatorUnavailableTitle": "Generator unavailable",
   "generatorUnavailableDescription": "Could not load creation tools. Try again.",
   "generatorNoGeneratorTitle": "No generator available",
@@ -136,6 +153,10 @@
   "generatorSuggestionTiger": "Majestic baby tiger walk",
   "generatorSuggestionDragon": "Tiny dragon flying",
   "generatorSuggestionProduct": "Cinematic product reveal",
+  "generatorSavedPromptsTitle": "Saved prompts",
+  "generatorSavePrompt": "Save prompt",
+  "generatorRemovePrompt": "Remove prompt",
+  "generatorPromptSaved": "Prompt saved",
   "projectsLoading": "Loading projects",
   "projectsUnavailableTitle": "Projects are unavailable",
   "projectsUnavailableDescription": "Generation history could not be loaded.",
@@ -158,7 +179,9 @@
   "settingsAppTitle": "App settings",
   "settingsAppDescription": "These options do not affect generation or payments in the demo build.",
   "settingsLanguageTitle": "Language",
-  "settingsLanguageDescription": "The interface now supports the main launch languages. A language switcher will be connected in the next step.",
+  "settingsLanguageDescription": "Choose the app interface language. The selection is saved on this device.",
+  "settingsLanguageSystem": "Use device language",
+  "settingsLanguagePickerTitle": "App language",
   "settingsNotificationsTitle": "Notifications",
   "settingsNotificationsDescription": "Generation-ready notifications will appear after a separate permission and device setup.",
   "settingsLegalTitle": "Legal documents",
@@ -225,5 +248,11 @@
         "type": "String"
       }
     }
-  }
+  },
+  "pricingSelectPackage": "Select a coin package",
+  "pricingBuyPackage": "Continue with selected package",
+  "pricingRestorePurchases": "Restore purchases",
+  "pricingPurchaseUnavailable": "Store purchases are not enabled in this build.",
+  "pricingPurchaseFailed": "The purchase could not be completed. No charge was made.",
+  "pricingRestoringPurchases": "Checking previous purchases..."
 }

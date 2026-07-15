@@ -14,6 +14,7 @@ import '../../../../shared/widgets/status_chip.dart';
 import '../../../generation_jobs/domain/generation_job_models.dart';
 import '../../../generation_jobs/presentation/providers/generation_job_providers.dart';
 import '../../../library/presentation/providers/library_providers.dart';
+import '../../../tools/domain/catalog_models.dart';
 import '../../../tools/presentation/view_models/catalog_ui_mappers.dart';
 
 class ResultViewerScreen extends ConsumerWidget {
@@ -135,7 +136,30 @@ class ResultViewerScreen extends ConsumerWidget {
                 if (isFailed)
                   _FailedResultCard(job: item.job)
                 else if (canShowResult)
-                  const ResultActionBar(),
+                  ResultActionBar(
+                    onRepeat: () => context.push(
+                      AppRoutes.createDraft(
+                        format: item.model.category.wireValue,
+                        modelId: item.model.id,
+                        prompt: item.job.prompt,
+                      ),
+                    ),
+                    onUseAsSource: () => context.push(
+                      AppRoutes.createDraft(
+                        format: item.outputAsset?.type == AssetType.video
+                            ? AiModelCategory.video.wireValue
+                            : AiModelCategory.image.wireValue,
+                        prompt: item.job.prompt,
+                        sourceAssetId: item.outputAsset?.id,
+                      ),
+                    ),
+                    onUpscale: () => context.push(
+                      AppRoutes.createDraft(
+                        format: AiModelCategory.upscale.wireValue,
+                        sourceAssetId: item.outputAsset?.id,
+                      ),
+                    ),
+                  ),
                 if (!isActive && !isFailed && !canShowResult)
                   const _ResultUnavailableCard(),
                 const SizedBox(height: 22),

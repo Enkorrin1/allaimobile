@@ -21,4 +21,19 @@ class AppRoutes {
   static String toolDetail(String toolId) => '/tools/$toolId';
   static String templateDetail(String templateId) => '/templates/$templateId';
   static String result(String assetId) => '/result/$assetId';
+
+  static String createDraft({
+    required String format,
+    String? modelId,
+    String? prompt,
+    String? sourceAssetId,
+  }) => Uri(
+    path: create,
+    queryParameters: {
+      'format': format,
+      'model': ?modelId,
+      if (prompt != null && prompt.isNotEmpty) 'prompt': prompt,
+      'source': ?sourceAssetId,
+    },
+  ).toString();
 }

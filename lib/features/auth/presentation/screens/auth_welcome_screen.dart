@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../app/theme/app_spacing.dart';
 import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/neon_media_card.dart';
+import '../../domain/auth_models.dart';
+import '../providers/auth_providers.dart';
+import '../widgets/social_auth_buttons.dart';
 
-class AuthWelcomeScreen extends StatelessWidget {
+class AuthWelcomeScreen extends ConsumerWidget {
   const AuthWelcomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(authControllerProvider);
     final l10n = context.l10n;
 
     return Scaffold(
@@ -36,7 +42,7 @@ class AuthWelcomeScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 44,
+                        fontSize: 36,
                         fontWeight: FontWeight.w900,
                         height: 1.02,
                       ),
@@ -57,6 +63,17 @@ class AuthWelcomeScreen extends StatelessWidget {
                       label: l10n.commonContinue,
                       onPressed: () => context.go(AppRoutes.register),
                     ),
+                    const SizedBox(height: AppSpacing.md),
+                    SocialAuthButtons(
+                      isSubmitting: auth.isSubmitting,
+                      onProviderSelected: (provider) {
+                        _loginWithProvider(context, ref, provider);
+                      },
+                    ),
+                    if (auth.errorMessage != null) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      _WelcomeError(message: auth.errorMessage!),
+                    ],
                     const SizedBox(height: 14),
                     TextButton(
                       onPressed: () => context.go(AppRoutes.login),
@@ -88,6 +105,17 @@ class AuthWelcomeScreen extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _loginWithProvider(
+    BuildContext context,
+    WidgetRef ref,
+    SocialAuthProvider provider,
+  ) async {
+    final success = await ref
+        .read(authControllerProvider.notifier)
+        .loginWithSocialProvider(provider);
+    if (success && context.mounted) context.go(AppRoutes.home);
+  }
 }
 
 class _OnboardingHero extends StatelessWidget {
@@ -102,6 +130,34 @@ class _OnboardingHero extends StatelessWidget {
       width: double.infinity,
       height: double.infinity,
       borderRadius: 30,
+    );
+  }
+}
+
+class _WelcomeError extends StatelessWidget {
+  const _WelcomeError({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: const Color(0xFF321416),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF73303A)),
+      ),
+      child: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Color(0xFFFFD1D6),
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }

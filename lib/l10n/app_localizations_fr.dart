@@ -80,6 +80,15 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pour vous inscrire, confirmez vos 18 ans et acceptez les conditions AllAi.';
 
   @override
+  String get authOrContinueWith => 'ou continuer avec';
+
+  @override
+  String get authContinueWithGoogle => 'Continuer avec Google';
+
+  @override
+  String get authContinueWithApple => 'Continuer avec Apple ID';
+
+  @override
   String get authLoginTitle => 'Sign in';
 
   @override
@@ -243,6 +252,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get homeRecentProjectsTitle => 'Projets récents';
 
   @override
+  String get homeActiveJobsTitle => 'Creating now';
+
+  @override
+  String get homeActiveJobsSubtitle =>
+      'Your generations continue in the background';
+
+  @override
+  String homeJobProgress(int progress) {
+    return '$progress% complete';
+  }
+
+  @override
   String get homeAllEffects => 'Tous les effets';
 
   @override
@@ -253,6 +274,18 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get homeTryNow => 'Try Now';
+
+  @override
+  String get favoritesTitle => 'Favorites';
+
+  @override
+  String get favoritesEmpty => 'Save models and templates for quick access';
+
+  @override
+  String get favoritesAdd => 'Add to favorites';
+
+  @override
+  String get favoritesRemove => 'Remove from favorites';
 
   @override
   String get generatorUnavailableTitle => 'Generator unavailable';
@@ -382,6 +415,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get generatorSuggestionProduct => 'Cinematic product reveal';
 
   @override
+  String get generatorSavedPromptsTitle => 'Saved prompts';
+
+  @override
+  String get generatorSavePrompt => 'Save prompt';
+
+  @override
+  String get generatorRemovePrompt => 'Remove prompt';
+
+  @override
+  String get generatorPromptSaved => 'Prompt saved';
+
+  @override
   String get projectsLoading => 'Loading projects';
 
   @override
@@ -436,11 +481,17 @@ class AppLocalizationsFr extends AppLocalizations {
       'These options do not affect generation or payments in the demo build.';
 
   @override
-  String get settingsLanguageTitle => 'Language';
+  String get settingsLanguageTitle => 'Langue';
 
   @override
   String get settingsLanguageDescription =>
-      'The interface now supports the main launch languages. A language switcher will be connected in the next step.';
+      'Choisissez la langue de l’app. Le choix est enregistré sur cet appareil.';
+
+  @override
+  String get settingsLanguageSystem => 'Langue de l’appareil';
+
+  @override
+  String get settingsLanguagePickerTitle => 'Langue de l’app';
 
   @override
   String get settingsNotificationsTitle => 'Notifications';
@@ -579,4 +630,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String pricingPackageCoins(String coins) {
     return '$coins pièces';
   }
+
+  @override
+  String get pricingSelectPackage => 'Select a coin package';
+
+  @override
+  String get pricingBuyPackage => 'Continue with selected package';
+
+  @override
+  String get pricingRestorePurchases => 'Restore purchases';
+
+  @override
+  String get pricingPurchaseUnavailable =>
+      'Store purchases are not enabled in this build.';
+
+  @override
+  String get pricingPurchaseFailed =>
+      'The purchase could not be completed. No charge was made.';
+
+  @override
+  String get pricingRestoringPurchases => 'Checking previous purchases...';
 }

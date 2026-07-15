@@ -38,6 +38,7 @@ class GenerationJobController
     required String prompt,
     String? templateId,
     Map<String, Object?> settings = const {'aspectRatio': '9:16'},
+    List<String> inputAssetIds = const [],
   }) async {
     final cleanPrompt = prompt.trim();
     if (cleanPrompt.isEmpty) {
@@ -59,6 +60,7 @@ class GenerationJobController
               modelId: modelId,
               templateId: templateId,
               prompt: cleanPrompt,
+              inputAssetIds: inputAssetIds,
               settings: settings,
               clientRequestId:
                   'client-${DateTime.now().microsecondsSinceEpoch}',

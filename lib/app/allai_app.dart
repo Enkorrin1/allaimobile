@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
+import 'locale/app_locale_controller.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 
@@ -12,6 +13,7 @@ class AllAiApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    final locale = ref.watch(appLocaleControllerProvider).locale;
 
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
@@ -25,6 +27,7 @@ class AllAiApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
+      locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
     );

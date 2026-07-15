@@ -297,7 +297,8 @@ void main() {
 
     await scrollUntilVisible(tester, find.text('Start Creating Now'));
     expect(find.text('Start Creating Now'), findsOneWidget);
-    expect(find.text('Continue'), findsOneWidget);
+    expect(find.text('Continue with selected package'), findsOneWidget);
+    expect(find.text('Restore purchases'), findsOneWidget);
     expect(find.textContaining('Demo mode'), findsOneWidget);
   });
 

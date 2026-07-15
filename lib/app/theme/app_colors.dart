@@ -22,9 +22,9 @@ class AppColors {
   static const coralSoft = Color(0xFFFFE9E8);
   static const plum = Color(0xFF7C3AED);
 
-  static const darkInk = Color(0xFFF7F8FA);
+  static const darkInk = Color(0xFFF5F5F7);
   static const darkSurface = Color(0xFF000000);
-  static const darkPanel = Color(0xFF111111);
-  static const darkPanelAlt = Color(0xFF1C1C1F);
-  static const darkLine = Color(0xFF2B2B30);
+  static const darkPanel = Color(0xFF101012);
+  static const darkPanelAlt = Color(0xFF18181B);
+  static const darkLine = Color(0xFF2A2A2E);
 }

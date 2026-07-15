@@ -85,7 +85,8 @@ void main() {
 
     await scrollUntilVisible(tester, find.text('Start Creating Now'));
     expect(find.text('Start Creating Now'), findsOneWidget);
-    expect(find.text('Continue'), findsOneWidget);
+    expect(find.text('Continue with selected package'), findsOneWidget);
+    expect(find.text('Restore purchases'), findsOneWidget);
     expect(find.textContaining('coins available'), findsOneWidget);
     await scrollUntilVisible(tester, find.textContaining('Demo mode'));
     expect(find.textContaining('No live payment'), findsOneWidget);
@@ -102,5 +103,22 @@ void main() {
     expect(find.textContaining('backend'), findsNothing);
     expect(find.textContaining('job'), findsNothing);
     expect(find.textContaining('contracts'), findsNothing);
+  });
+
+  testWidgets('Phase 8B Settings language picker switches app locale', (
+    tester,
+  ) async {
+    await pumpPhase7CApp(tester, initialLocation: AppRoutes.settings);
+
+    await tester.tap(find.byKey(const Key('settings-language-card')));
+    await pumpRoute(tester);
+    expect(find.text('App language'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('language-option-ru')));
+    await pumpRoute(tester);
+
+    expect(find.text('Настройки'), findsOneWidget);
+    expect(find.text('Язык'), findsOneWidget);
+    expect(find.text('Русский'), findsOneWidget);
   });
 }

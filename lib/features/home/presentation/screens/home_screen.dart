@@ -4,6 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../../../features/billing/presentation/providers/billing_providers.dart';
+import '../../../../features/content_cards/domain/content_card_models.dart';
+import '../../../../features/content_cards/presentation/providers/content_cards_providers.dart';
+import '../../../../features/favorites/presentation/providers/favorites_providers.dart';
+import '../../../../features/library/domain/library_history_item.dart';
 import '../../../../features/library/presentation/providers/library_providers.dart';
 import '../../../../features/tools/domain/catalog_models.dart';
 import '../../../../features/tools/presentation/providers/catalog_providers.dart';
@@ -12,6 +16,7 @@ import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/error_state.dart';
 import '../../../../shared/widgets/loading_state.dart';
 import '../../../../shared/widgets/neon_media_card.dart';
+import '../view_models/home_library_sections.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -20,7 +25,9 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final balance = ref.watch(balanceProvider).value;
     final catalogAsync = ref.watch(catalogProvider);
+    final contentCardsAsync = ref.watch(mobileContentCardsProvider);
     final history = ref.watch(libraryHistoryProvider).value ?? const [];
+    final favorites = ref.watch(favoritesControllerProvider);
     final l10n = context.l10n;
 
     return Scaffold(
@@ -34,7 +41,46 @@ class HomeScreen extends ConsumerWidget {
             description: l10n.homeEffectsUnavailableDescription,
           ),
           data: (catalog) {
-            final recentProjects = history.take(3).toList();
+            final librarySections = HomeLibrarySections.fromHistory(history);
+            final activeJobs = librarySections.active;
+            final recentProjects = librarySections.recentResults;
+            final contentManifest = contentCardsAsync.asData?.value;
+            final contentSections = contentManifest?.sections ?? const [];
+            final remoteHome = _contentSection(contentSections, 'home');
+            final remoteShowcase = _contentSection(contentSections, 'showcase');
+            final remoteExplore = _contentSection(contentSections, 'explore');
+            final remoteHero = remoteHome == null || remoteHome.cards.isEmpty
+                ? null
+                : remoteHome.cards.first;
+            final remoteHomeItems = _itemsForContentCards(
+              remoteHome?.cards.skip(1).toList() ?? const [],
+              limit: 8,
+            );
+            final remoteShowcaseItems = _itemsForContentCards(
+              remoteShowcase?.cards ?? const [],
+              limit: 12,
+            );
+            final remoteExploreItems = _itemsForContentCards(
+              remoteExplore?.cards ?? const [],
+              limit: 12,
+            );
+            final favoriteItems = <_EffectItem>[
+              for (final template in catalog.templates)
+                if (favorites.hasTemplate(template.id))
+                  _EffectItem(
+                    title: template.title,
+                    imageUrl: template.previewUrl,
+                    route: AppRoutes.templateDetail(template.id),
+                  ),
+              for (final model in catalog.models)
+                if (favorites.hasModel(model.id))
+                  _EffectItem(
+                    title: model.name,
+                    imageUrl:
+                        model.thumbnailUrl ?? _FallbackImages.projectFallback,
+                    route: AppRoutes.toolDetail(model.id),
+                  ),
+            ];
             final heroTemplate =
                 _templateById(catalog, 'product-ugc-hook') ??
                 (catalog.templates.isEmpty ? null : catalog.templates.first);
@@ -77,48 +123,70 @@ class HomeScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(right: 20),
                   child: _HeroShowcase(
-                    title: heroTemplate?.title ?? 'Product UGC Hook',
+                    title:
+                        remoteHero?.title ??
+                        heroTemplate?.title ??
+                        'Product UGC Hook',
                     imageUrl:
+                        remoteHero?.displayImageUrl ??
                         heroTemplate?.previewUrl ??
                         _FallbackImages.projectFallback,
-                    onTap: () => heroTemplate == null
-                        ? context.go(AppRoutes.create)
-                        : context.push(
-                            AppRoutes.templateDetail(heroTemplate.id),
-                          ),
+                    onTap: () {
+                      if (remoteHero != null) {
+                        _openEffect(context, _itemForContentCard(remoteHero));
+                        return;
+                      }
+                      if (heroTemplate == null) {
+                        context.go(AppRoutes.create);
+                        return;
+                      }
+                      context.push(AppRoutes.templateDetail(heroTemplate.id));
+                    },
                   ),
                 ),
                 const SizedBox(height: 24),
                 NeonSectionHeader(
-                  title: l10n.homeReadyScenariosTitle,
+                  title: remoteHome?.title.isNotEmpty == true
+                      ? remoteHome!.title
+                      : l10n.homeReadyScenariosTitle,
                   subtitle: l10n.homeReadyScenariosSubtitle,
                   actionLabel: l10n.homeActionAll,
                   onActionPressed: () => context.push(AppRoutes.tools),
                 ),
                 const SizedBox(height: 14),
                 _EffectStrip(
-                  items: studioPresets,
+                  items: remoteHomeItems.isNotEmpty
+                      ? remoteHomeItems
+                      : studioPresets,
                   onTap: (item) => _openEffect(context, item),
                 ),
                 const SizedBox(height: 26),
                 NeonSectionHeader(
-                  title: l10n.homeMarketingTitle,
+                  title: remoteShowcase?.title.isNotEmpty == true
+                      ? remoteShowcase!.title
+                      : l10n.homeMarketingTitle,
                   subtitle: l10n.homeMarketingSubtitle,
                 ),
                 const SizedBox(height: 14),
                 _EffectStrip(
-                  items: marketingPresets,
+                  items: remoteShowcaseItems.isNotEmpty
+                      ? remoteShowcaseItems
+                      : marketingPresets,
                   compact: true,
                   onTap: (item) => _openEffect(context, item),
                 ),
                 const SizedBox(height: 26),
                 NeonSectionHeader(
-                  title: l10n.homeVideoStudioTitle,
+                  title: remoteExplore?.title.isNotEmpty == true
+                      ? remoteExplore!.title
+                      : l10n.homeVideoStudioTitle,
                   subtitle: l10n.homeVideoStudioSubtitle,
                 ),
                 const SizedBox(height: 14),
                 _EffectStrip(
-                  items: videoPresets,
+                  items: remoteExploreItems.isNotEmpty
+                      ? remoteExploreItems
+                      : videoPresets,
                   compact: true,
                   onTap: (item) => _openEffect(context, item),
                 ),
@@ -137,6 +205,34 @@ class HomeScreen extends ConsumerWidget {
                   onTemplate: (template) =>
                       context.push(AppRoutes.templateDetail(template.id)),
                 ),
+                if (favoriteItems.isNotEmpty) ...[
+                  const SizedBox(height: 26),
+                  NeonSectionHeader(
+                    title: l10n.favoritesTitle,
+                    actionLabel: l10n.homeActionAll,
+                    onActionPressed: () => context.push(AppRoutes.tools),
+                  ),
+                  const SizedBox(height: 14),
+                  _EffectStrip(
+                    items: favoriteItems,
+                    compact: true,
+                    onTap: (item) => _openEffect(context, item),
+                  ),
+                ],
+                if (activeJobs.isNotEmpty) ...[
+                  const SizedBox(height: 26),
+                  NeonSectionHeader(
+                    title: l10n.homeActiveJobsTitle,
+                    subtitle: l10n.homeActiveJobsSubtitle,
+                    actionLabel: l10n.homeActionOpen,
+                    onActionPressed: () => context.go(AppRoutes.library),
+                  ),
+                  const SizedBox(height: 14),
+                  _ActiveJobStrip(
+                    jobs: activeJobs,
+                    onTap: (jobId) => context.push(AppRoutes.result(jobId)),
+                  ),
+                ],
                 if (recentProjects.isNotEmpty) ...[
                   const SizedBox(height: 26),
                   NeonSectionHeader(
@@ -174,6 +270,16 @@ class HomeScreen extends ConsumerWidget {
   void _openEffect(BuildContext context, _EffectItem item) {
     if (item.route != null) {
       context.push(item.route!);
+      return;
+    }
+    if (item.prompt != null && item.prompt!.trim().isNotEmpty) {
+      context.go(
+        AppRoutes.createDraft(
+          format: item.format ?? 'video',
+          modelId: item.modelId,
+          prompt: item.prompt,
+        ),
+      );
       return;
     }
     context.go(AppRoutes.create);
@@ -247,6 +353,128 @@ class HomeScreen extends ConsumerWidget {
           ),
     ];
   }
+
+  ContentCardSection? _contentSection(
+    List<ContentCardSection> sections,
+    String id,
+  ) {
+    for (final section in sections) {
+      if (section.id == id && section.cards.isNotEmpty) return section;
+    }
+    return null;
+  }
+
+  List<_EffectItem> _itemsForContentCards(
+    List<ContentCard> cards, {
+    required int limit,
+  }) {
+    return cards.take(limit).map(_itemForContentCard).toList();
+  }
+
+  _EffectItem _itemForContentCard(ContentCard card) {
+    return _EffectItem(
+      title: card.title,
+      imageUrl: card.displayImageUrl,
+      format: card.routeFormat,
+      modelId: _normalizeModelId(card.generation.modelSlug),
+      prompt: card.generation.promptTemplate,
+    );
+  }
+
+  String? _normalizeModelId(String value) {
+    final normalized = value.trim().toLowerCase().replaceAll(' ', '-');
+    return normalized.isEmpty ? null : normalized;
+  }
+}
+
+class _ActiveJobStrip extends StatelessWidget {
+  const _ActiveJobStrip({required this.jobs, required this.onTap});
+
+  final List<LibraryHistoryItem> jobs;
+  final ValueChanged<String> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 138,
+      child: ListView.separated(
+        clipBehavior: Clip.none,
+        scrollDirection: Axis.horizontal,
+        itemCount: jobs.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final item = jobs[index];
+          final progress = (item.job.progress ?? 0).clamp(0.0, 1.0);
+          final accent = modelCategoryColor(item.model.category);
+          return Material(
+            color: const Color(0xFF151517),
+            borderRadius: BorderRadius.circular(8),
+            child: InkWell(
+              key: Key('home-active-job-${item.job.id}'),
+              borderRadius: BorderRadius.circular(8),
+              onTap: () => onTap(item.job.id),
+              child: SizedBox(
+                width: 262,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.auto_awesome, color: accent, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              item.template?.title ?? item.model.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            context.l10n.homeJobProgress(
+                              (progress * 100).round(),
+                            ),
+                            style: TextStyle(
+                              color: accent,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Text(
+                        item.job.prompt,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: allAiMuted,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 4,
+                        color: accent,
+                        backgroundColor: Colors.white12,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _TopBar extends StatelessWidget {
@@ -273,7 +501,7 @@ class _TopBar extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 40,
+              fontSize: 36,
               fontWeight: FontWeight.w900,
               height: 1,
             ),
@@ -333,7 +561,7 @@ class _HeroShowcase extends StatelessWidget {
       imageUrl: imageUrl,
       width: double.infinity,
       height: 330,
-      borderRadius: 26,
+      borderRadius: 8,
       centerContent: true,
       ctaLabel: context.l10n.homeTryNow,
       onTap: onTap,
@@ -368,7 +596,7 @@ class _EffectStrip extends StatelessWidget {
             imageUrl: item.imageUrl,
             width: compact ? 154 : 198,
             height: compact ? 145 : 248,
-            borderRadius: 16,
+            borderRadius: 8,
             onTap: () => onTap(item),
           );
         },
@@ -405,7 +633,7 @@ class _MagicStrip extends StatelessWidget {
             imageUrl: primary?.previewUrl ?? _FallbackImages.projectFallback,
             width: 330,
             height: 256,
-            borderRadius: 16,
+            borderRadius: 8,
             onTap: primary == null ? onCreate : () => onTemplate(primary!),
           ),
           const SizedBox(width: 14),
@@ -414,7 +642,7 @@ class _MagicStrip extends StatelessWidget {
             imageUrl: secondary?.previewUrl ?? _FallbackImages.projectFallback,
             width: 210,
             height: 256,
-            borderRadius: 16,
+            borderRadius: 8,
             onTap: secondary == null ? onCreate : () => onTemplate(secondary!),
           ),
         ],
@@ -452,11 +680,21 @@ class _MenuTile extends StatelessWidget {
 }
 
 class _EffectItem {
-  const _EffectItem({required this.title, required this.imageUrl, this.route});
+  const _EffectItem({
+    required this.title,
+    required this.imageUrl,
+    this.route,
+    this.format,
+    this.modelId,
+    this.prompt,
+  });
 
   final String title;
   final String imageUrl;
   final String? route;
+  final String? format;
+  final String? modelId;
+  final String? prompt;
 }
 
 class _FallbackImages {

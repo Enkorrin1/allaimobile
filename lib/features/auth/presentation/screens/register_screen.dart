@@ -9,7 +9,9 @@ import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_text_field.dart';
+import '../../domain/auth_models.dart';
 import '../providers/auth_providers.dart';
+import '../widgets/social_auth_buttons.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -74,6 +76,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            SocialAuthButtons(
+              isSubmitting: auth.isSubmitting,
+              onProviderSelected: _loginWithProvider,
             ),
             const SizedBox(height: AppSpacing.lg),
             AppCard(
@@ -296,6 +303,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             acceptedAt: now,
           ),
         );
+    if (success && mounted) context.go(AppRoutes.home);
+  }
+
+  Future<void> _loginWithProvider(SocialAuthProvider provider) async {
+    final success = await ref
+        .read(authControllerProvider.notifier)
+        .loginWithSocialProvider(provider);
     if (success && mounted) context.go(AppRoutes.home);
   }
 }

@@ -1,38 +1,40 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
+
 class ResultActionBar extends StatelessWidget {
-  const ResultActionBar({super.key});
+  const ResultActionBar({
+    required this.onRepeat,
+    required this.onUseAsSource,
+    required this.onUpscale,
+    super.key,
+  });
+
+  final VoidCallback onRepeat;
+  final VoidCallback onUseAsSource;
+  final VoidCallback onUpscale;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: const [
+      children: [
         _ActionChip(
-          label: 'Сохранить',
-          icon: Icons.download_outlined,
-          feedback: 'Сохранение появится в следующем обновлении',
-        ),
-        _ActionChip(
-          label: 'Поделиться',
-          icon: Icons.ios_share_outlined,
-          feedback: 'Поделиться результатом можно будет в следующем обновлении',
-        ),
-        _ActionChip(
-          label: 'Повторить',
+          label: l10n.commonRetry,
           icon: Icons.repeat,
-          feedback: 'Повтор генерации появится в следующем обновлении',
+          onPressed: onRepeat,
         ),
         _ActionChip(
-          label: 'Источник скоро',
+          label: l10n.generatorAddImage,
           icon: Icons.add_photo_alternate_outlined,
-          enabled: false,
+          onPressed: onUseAsSource,
         ),
         _ActionChip(
-          label: 'Улучшить скоро',
+          label: l10n.generatorTitleUpscale,
           icon: Icons.hd_outlined,
-          enabled: false,
+          onPressed: onUpscale,
         ),
       ],
     );
@@ -43,29 +45,19 @@ class _ActionChip extends StatelessWidget {
   const _ActionChip({
     required this.label,
     required this.icon,
-    this.feedback,
-    this.enabled = true,
+    required this.onPressed,
   });
 
   final String label;
   final IconData icon;
-  final String? feedback;
-  final bool enabled;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     return ActionChip(
       avatar: Icon(icon, size: 18),
       label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
-      onPressed: enabled
-          ? () {
-              final message = feedback;
-              if (message == null) return;
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(SnackBar(content: Text(message)));
-            }
-          : null,
+      onPressed: onPressed,
     );
   }
 }

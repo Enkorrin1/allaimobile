@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/cost_preview_card.dart';
@@ -12,6 +13,8 @@ import '../../../../shared/widgets/loading_state.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/status_chip.dart';
 import '../../../billing/presentation/view_models/billing_copy.dart';
+import '../../../favorites/presentation/providers/favorites_providers.dart';
+import '../../domain/catalog_models.dart';
 import '../providers/catalog_providers.dart';
 import '../view_models/catalog_ui_mappers.dart';
 
@@ -24,9 +27,25 @@ class TemplateDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final catalogAsync = ref.watch(catalogStateProvider);
+    final favorites = ref.watch(favoritesControllerProvider);
+    final isFavorite = favorites.hasTemplate(templateId);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Шаблон')),
+      appBar: AppBar(
+        title: const Text('Шаблон'),
+        actions: [
+          IconButton(
+            key: const Key('favorite-template-button'),
+            tooltip: isFavorite
+                ? context.l10n.favoritesRemove
+                : context.l10n.favoritesAdd,
+            onPressed: () => ref
+                .read(favoritesControllerProvider.notifier)
+                .toggleTemplate(templateId),
+            icon: Icon(isFavorite ? Icons.bookmark : Icons.bookmark_border),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: catalogAsync.when(
           loading: () => const LoadingState(label: 'Загружаем шаблон'),
@@ -173,7 +192,13 @@ class TemplateDetailScreen extends ConsumerWidget {
                   icon: Icons.auto_awesome,
                   fullWidth: true,
                   onPressed: canStart
-                      ? () => context.go(AppRoutes.create)
+                      ? () => context.go(
+                          AppRoutes.createDraft(
+                            format: model.category.wireValue,
+                            modelId: model.id,
+                            prompt: template.defaultPrompt,
+                          ),
+                        )
                       : null,
                 ),
               ],

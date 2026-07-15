@@ -4,6 +4,7 @@ import '../domain/auth_models.dart';
 abstract class AuthRepository {
   Future<AuthSession?> restoreSession();
   Future<AuthSession> login(LoginRequest request);
+  Future<AuthSession> loginWithSocialProvider(SocialLoginRequest request);
   Future<AuthSession> register(RegisterRequest request);
   Future<void> logout();
   Future<void> requestPasswordReset(String email);
@@ -65,6 +66,41 @@ class MockAuthRepository implements AuthRepository {
         locale: 'ru',
         createdAt: _mockCreatedAt,
         legalConsent: _mockConsent,
+      ),
+    );
+    await _sessionStore.write(session);
+    return session;
+  }
+
+  @override
+  Future<AuthSession> loginWithSocialProvider(
+    SocialLoginRequest request,
+  ) async {
+    final now = DateTime.now().toUtc();
+    final provider = request.provider;
+    final providerId = provider.wireValue;
+    final email = _normalizeEmail(
+      request.email ?? '$providerId.creator@allai.market',
+    );
+    final session = _createSession(
+      user: AuthUser(
+        id: 'user-social-$providerId',
+        email: email,
+        displayName:
+            _emptyToNull(request.displayName) ??
+            switch (provider) {
+              SocialAuthProvider.google => 'Google Creator',
+              SocialAuthProvider.apple => 'Apple ID Creator',
+            },
+        locale: request.locale,
+        createdAt: now,
+        legalConsent: LegalConsent(
+          acceptedTerms: true,
+          acceptedPrivacy: true,
+          confirmedAge18: true,
+          consentVersion: '2026-07',
+          acceptedAt: now,
+        ),
       ),
     );
     await _sessionStore.write(session);

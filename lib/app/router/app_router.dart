@@ -132,6 +132,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   initialCategory: _categoryFromQuery(
                     state.uri.queryParameters['format'],
                   ),
+                  initialModelId: state.uri.queryParameters['model'],
+                  initialPrompt: state.uri.queryParameters['prompt'],
+                  initialSourceAssetId: state.uri.queryParameters['source'],
                 ),
               ),
             ],

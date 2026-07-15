@@ -256,6 +256,24 @@ abstract class AppLocalizations {
   /// **'Registration requires 18+ confirmation and AllAi terms acceptance.'**
   String get authWelcomeLegal;
 
+  /// No description provided for @authOrContinueWith.
+  ///
+  /// In en, this message translates to:
+  /// **'or continue with'**
+  String get authOrContinueWith;
+
+  /// No description provided for @authContinueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get authContinueWithGoogle;
+
+  /// No description provided for @authContinueWithApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Apple ID'**
+  String get authContinueWithApple;
+
   /// No description provided for @authLoginTitle.
   ///
   /// In en, this message translates to:
@@ -568,6 +586,24 @@ abstract class AppLocalizations {
   /// **'Recent Projects'**
   String get homeRecentProjectsTitle;
 
+  /// No description provided for @homeActiveJobsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating now'**
+  String get homeActiveJobsTitle;
+
+  /// No description provided for @homeActiveJobsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your generations continue in the background'**
+  String get homeActiveJobsSubtitle;
+
+  /// No description provided for @homeJobProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{progress}% complete'**
+  String homeJobProgress(int progress);
+
   /// No description provided for @homeAllEffects.
   ///
   /// In en, this message translates to:
@@ -591,6 +627,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try Now'**
   String get homeTryNow;
+
+  /// No description provided for @favoritesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get favoritesTitle;
+
+  /// No description provided for @favoritesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Save models and templates for quick access'**
+  String get favoritesEmpty;
+
+  /// No description provided for @favoritesAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to favorites'**
+  String get favoritesAdd;
+
+  /// No description provided for @favoritesRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from favorites'**
+  String get favoritesRemove;
 
   /// No description provided for @generatorUnavailableTitle.
   ///
@@ -814,6 +874,30 @@ abstract class AppLocalizations {
   /// **'Cinematic product reveal'**
   String get generatorSuggestionProduct;
 
+  /// No description provided for @generatorSavedPromptsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved prompts'**
+  String get generatorSavedPromptsTitle;
+
+  /// No description provided for @generatorSavePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Save prompt'**
+  String get generatorSavePrompt;
+
+  /// No description provided for @generatorRemovePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove prompt'**
+  String get generatorRemovePrompt;
+
+  /// No description provided for @generatorPromptSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt saved'**
+  String get generatorPromptSaved;
+
   /// No description provided for @projectsLoading.
   ///
   /// In en, this message translates to:
@@ -907,8 +991,20 @@ abstract class AppLocalizations {
   /// No description provided for @settingsLanguageDescription.
   ///
   /// In en, this message translates to:
-  /// **'The interface now supports the main launch languages. A language switcher will be connected in the next step.'**
+  /// **'Choose the app interface language. The selection is saved on this device.'**
   String get settingsLanguageDescription;
+
+  /// No description provided for @settingsLanguageSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Use device language'**
+  String get settingsLanguageSystem;
+
+  /// No description provided for @settingsLanguagePickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App language'**
+  String get settingsLanguagePickerTitle;
 
   /// No description provided for @settingsNotificationsTitle.
   ///
@@ -1143,6 +1239,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{coins} coins'**
   String pricingPackageCoins(String coins);
+
+  /// No description provided for @pricingSelectPackage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a coin package'**
+  String get pricingSelectPackage;
+
+  /// No description provided for @pricingBuyPackage.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with selected package'**
+  String get pricingBuyPackage;
+
+  /// No description provided for @pricingRestorePurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchases'**
+  String get pricingRestorePurchases;
+
+  /// No description provided for @pricingPurchaseUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Store purchases are not enabled in this build.'**
+  String get pricingPurchaseUnavailable;
+
+  /// No description provided for @pricingPurchaseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The purchase could not be completed. No charge was made.'**
+  String get pricingPurchaseFailed;
+
+  /// No description provided for @pricingRestoringPurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking previous purchases...'**
+  String get pricingRestoringPurchases;
 }
 
 class _AppLocalizationsDelegate

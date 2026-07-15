@@ -78,6 +78,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get authWelcomeLegal => '注册需要确认已满 18 岁并接受 AllAi 条款。';
 
   @override
+  String get authOrContinueWith => '或继续使用';
+
+  @override
+  String get authContinueWithGoogle => '使用 Google 继续';
+
+  @override
+  String get authContinueWithApple => '使用 Apple ID 继续';
+
+  @override
   String get authLoginTitle => 'Sign in';
 
   @override
@@ -241,6 +250,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homeRecentProjectsTitle => 'Recent Projects';
 
   @override
+  String get homeActiveJobsTitle => 'Creating now';
+
+  @override
+  String get homeActiveJobsSubtitle =>
+      'Your generations continue in the background';
+
+  @override
+  String homeJobProgress(int progress) {
+    return '$progress% complete';
+  }
+
+  @override
   String get homeAllEffects => 'All effects';
 
   @override
@@ -251,6 +272,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get homeTryNow => 'Try Now';
+
+  @override
+  String get favoritesTitle => 'Favorites';
+
+  @override
+  String get favoritesEmpty => 'Save models and templates for quick access';
+
+  @override
+  String get favoritesAdd => 'Add to favorites';
+
+  @override
+  String get favoritesRemove => 'Remove from favorites';
 
   @override
   String get generatorUnavailableTitle => 'Generator unavailable';
@@ -378,6 +411,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get generatorSuggestionProduct => 'Cinematic product reveal';
 
   @override
+  String get generatorSavedPromptsTitle => 'Saved prompts';
+
+  @override
+  String get generatorSavePrompt => 'Save prompt';
+
+  @override
+  String get generatorRemovePrompt => 'Remove prompt';
+
+  @override
+  String get generatorPromptSaved => 'Prompt saved';
+
+  @override
   String get projectsLoading => 'Loading projects';
 
   @override
@@ -432,11 +477,16 @@ class AppLocalizationsZh extends AppLocalizations {
       'These options do not affect generation or payments in the demo build.';
 
   @override
-  String get settingsLanguageTitle => 'Language';
+  String get settingsLanguageTitle => '语言';
 
   @override
-  String get settingsLanguageDescription =>
-      'The interface now supports the main launch languages. A language switcher will be connected in the next step.';
+  String get settingsLanguageDescription => '选择应用界面语言。选择会保存在此设备上。';
+
+  @override
+  String get settingsLanguageSystem => '设备语言';
+
+  @override
+  String get settingsLanguagePickerTitle => '应用语言';
 
   @override
   String get settingsNotificationsTitle => 'Notifications';
@@ -575,4 +625,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String pricingPackageCoins(String coins) {
     return '$coins 金币';
   }
+
+  @override
+  String get pricingSelectPackage => 'Select a coin package';
+
+  @override
+  String get pricingBuyPackage => 'Continue with selected package';
+
+  @override
+  String get pricingRestorePurchases => 'Restore purchases';
+
+  @override
+  String get pricingPurchaseUnavailable =>
+      'Store purchases are not enabled in this build.';
+
+  @override
+  String get pricingPurchaseFailed =>
+      'The purchase could not be completed. No charge was made.';
+
+  @override
+  String get pricingRestoringPurchases => 'Checking previous purchases...';
 }

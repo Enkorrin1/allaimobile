@@ -14,7 +14,7 @@ class NeonMediaCard extends StatelessWidget {
     this.subtitle,
     this.width = 160,
     this.height = 220,
-    this.borderRadius = 16,
+    this.borderRadius = 8,
     this.onTap,
     this.centerContent = false,
     this.ctaLabel,
@@ -33,7 +33,7 @@ class NeonMediaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(borderRadius);
+    final radius = BorderRadius.circular(borderRadius.clamp(0, 8));
 
     return SizedBox(
       width: width,
@@ -95,7 +95,7 @@ class NeonMediaCard extends StatelessWidget {
                           : TextAlign.start,
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: centerContent ? 28 : 20,
+                        fontSize: centerContent ? 24 : 17,
                         fontWeight: FontWeight.w900,
                         height: 1.08,
                       ),
@@ -121,8 +121,8 @@ class NeonMediaCard extends StatelessWidget {
                       const SizedBox(height: 18),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 12,
+                          horizontal: 24,
+                          vertical: 11,
                         ),
                         decoration: const ShapeDecoration(
                           color: allAiNeon,
@@ -134,7 +134,7 @@ class NeonMediaCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Colors.black,
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
@@ -179,7 +179,7 @@ class NeonPillButton extends StatelessWidget {
           foregroundColor: Colors.black,
           disabledForegroundColor: Colors.black.withValues(alpha: 0.55),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -231,7 +231,7 @@ class NeonSectionHeader extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 24,
+                  fontSize: 22,
                   fontWeight: FontWeight.w900,
                   height: 1.08,
                 ),

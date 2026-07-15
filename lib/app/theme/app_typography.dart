@@ -9,19 +9,19 @@ class AppTypography {
     return TextTheme(
       headlineMedium: TextStyle(
         color: textColor,
-        fontSize: 30,
+        fontSize: 28,
         fontWeight: FontWeight.w800,
         height: 1.08,
       ),
       headlineSmall: TextStyle(
         color: textColor,
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: FontWeight.w800,
         height: 1.12,
       ),
       titleLarge: TextStyle(
         color: textColor,
-        fontSize: 21,
+        fontSize: 20,
         fontWeight: FontWeight.w800,
         height: 1.18,
       ),

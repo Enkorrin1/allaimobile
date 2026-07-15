@@ -78,6 +78,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get authWelcomeLegal => '登録には18歳以上の確認とAllAi規約への同意が必要です。';
 
   @override
+  String get authOrContinueWith => 'または続行';
+
+  @override
+  String get authContinueWithGoogle => 'Googleで続ける';
+
+  @override
+  String get authContinueWithApple => 'Apple IDで続ける';
+
+  @override
   String get authLoginTitle => 'Sign in';
 
   @override
@@ -241,6 +250,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeRecentProjectsTitle => 'Recent Projects';
 
   @override
+  String get homeActiveJobsTitle => 'Creating now';
+
+  @override
+  String get homeActiveJobsSubtitle =>
+      'Your generations continue in the background';
+
+  @override
+  String homeJobProgress(int progress) {
+    return '$progress% complete';
+  }
+
+  @override
   String get homeAllEffects => 'All effects';
 
   @override
@@ -251,6 +272,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeTryNow => 'Try Now';
+
+  @override
+  String get favoritesTitle => 'Favorites';
+
+  @override
+  String get favoritesEmpty => 'Save models and templates for quick access';
+
+  @override
+  String get favoritesAdd => 'Add to favorites';
+
+  @override
+  String get favoritesRemove => 'Remove from favorites';
 
   @override
   String get generatorUnavailableTitle => 'Generator unavailable';
@@ -378,6 +411,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get generatorSuggestionProduct => 'Cinematic product reveal';
 
   @override
+  String get generatorSavedPromptsTitle => 'Saved prompts';
+
+  @override
+  String get generatorSavePrompt => 'Save prompt';
+
+  @override
+  String get generatorRemovePrompt => 'Remove prompt';
+
+  @override
+  String get generatorPromptSaved => 'Prompt saved';
+
+  @override
   String get projectsLoading => 'Loading projects';
 
   @override
@@ -432,11 +477,16 @@ class AppLocalizationsJa extends AppLocalizations {
       'These options do not affect generation or payments in the demo build.';
 
   @override
-  String get settingsLanguageTitle => 'Language';
+  String get settingsLanguageTitle => '言語';
 
   @override
-  String get settingsLanguageDescription =>
-      'The interface now supports the main launch languages. A language switcher will be connected in the next step.';
+  String get settingsLanguageDescription => 'アプリの表示言語を選択します。選択はこの端末に保存されます。';
+
+  @override
+  String get settingsLanguageSystem => '端末の言語';
+
+  @override
+  String get settingsLanguagePickerTitle => 'アプリの言語';
 
   @override
   String get settingsNotificationsTitle => 'Notifications';
@@ -575,4 +625,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String pricingPackageCoins(String coins) {
     return '$coins コイン';
   }
+
+  @override
+  String get pricingSelectPackage => 'Select a coin package';
+
+  @override
+  String get pricingBuyPackage => 'Continue with selected package';
+
+  @override
+  String get pricingRestorePurchases => 'Restore purchases';
+
+  @override
+  String get pricingPurchaseUnavailable =>
+      'Store purchases are not enabled in this build.';
+
+  @override
+  String get pricingPurchaseFailed =>
+      'The purchase could not be completed. No charge was made.';
+
+  @override
+  String get pricingRestoringPurchases => 'Checking previous purchases...';
 }

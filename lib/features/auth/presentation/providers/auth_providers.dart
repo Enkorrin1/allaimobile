@@ -96,6 +96,25 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  Future<bool> loginWithSocialProvider(SocialAuthProvider provider) async {
+    state = const AuthState.signedOut(isSubmitting: true);
+    try {
+      final session = await ref
+          .read(authRepositoryProvider)
+          .loginWithSocialProvider(SocialLoginRequest(provider: provider));
+      state = AuthState.signedIn(session);
+      return true;
+    } on AuthFailure catch (error) {
+      state = AuthState.signedOut(errorMessage: error.safeMessage);
+      return false;
+    } catch (_) {
+      state = const AuthState.signedOut(
+        errorMessage: 'Не удалось выполнить вход через соцсервис',
+      );
+      return false;
+    }
+  }
+
   Future<bool> register({
     required String email,
     required String password,
